@@ -151,15 +151,25 @@ var theWebUI =
 		"webui.ignore_timeouts":	0,
 		"webui.retry_on_error":		120,
 		"webui.closed_panels":		{},
+		"webui.open_tegs.last": [],
+		"webui.open_tegs.keep": 0,
+		"webui.selected_labels.last": {},
+		"webui.selected_labels.keep": 0,
+		"webui.selected_tab.last": {},
+		"webui.selected_tab.keep": 0,
 		"webui.timeformat":		0,
 		"webui.dateformat":		0,
 		"webui.speedintitle":		0,
+		"webui.speedgraph.max_seconds": 600,
 		"webui.log_autoswitch":		1,
+		"webui.labelsize_rightalign":		0,
 		"webui.show_labelsize":		1,
 		"webui.show_searchlabelsize":	0,
 		"webui.show_statelabelsize":	0,
 		"webui.show_label_path_tree":	1,
 		"webui.show_empty_path_labels":	0,
+		"webui.show_label_text_overflow": 0,
+		"webui.show_open_status":	1,
 		"webui.register_magnet":	0,
 		...(() => {
 			const defaults = {};
@@ -183,6 +193,12 @@ var theWebUI =
 		speedUL: 	0,
 		DL: 		0,
 		UL: 		0
+	},
+	stopen:
+	{
+		http: 	-1,
+		sock: 	-1,
+		fd: 	-1,
 	},
 	sTimer: 	null,
 	updTimer: 	null,
@@ -450,6 +466,11 @@ var theWebUI =
 			return(this.oldFilesSortNumeric(x,y));
 		}
 		this.speedGraph.create($("#Speed"));
+		const tab = theWebUI.settings['webui.selected_tab.keep'] ?
+					theWebUI.settings['webui.selected_tab.last'] : 'lcont';
+		theTabs.show(tab);
+		this.activeView = tab;
+
 		if(!this.settings["webui.show_cats"])
 			$("#CatList").hide();
 		if(!this.settings["webui.show_dets"])
@@ -482,10 +503,30 @@ var theWebUI =
 		}
 		if(!theWebUI.systemInfo.rTorrent.started)
 			$(theWebUI.getTable("trt").scp).text(theUILang.noTorrentList).show();
+
 		$(".catpanel").each( function()
 		{
 			theWebUI.showPanel(this,!theWebUI.settings["webui.closed_panels"][this.id]);
 		});
+		// recreate tegs if enabled
+		if (theWebUI.settings["webui.open_tegs.keep"]) {
+			for(const tegStr of theWebUI.settings["webui.open_tegs.last"]) {
+				theWebUI.createTeg(tegStr);
+			}
+		}
+		// switch to labels if keeping selected labels is enabled
+		if (theWebUI.settings["webui.selected_labels.keep"]) {
+			this.actLbls = this.settings['webui.selected_labels.last'];
+			for(const labelType in this.actLbls) {
+				if (labelType in this.actLbls) {
+					const ele = $$(this.actLbls[labelType]);
+					if (ele) {
+						$($$(labelType)).find(".sel").removeClass("sel");
+						$(ele).addClass("sel");
+					}
+				}
+			}
+		}
 
 		// user must be able add peer when peers are empty
 		$("#PeerList .stable-body").mouseclick(function(e)
@@ -785,6 +826,12 @@ var theWebUI =
 									theWebUI.resetInterval();
 								break;
 							}
+							case "webui.speedgraph.max_seconds":
+							{
+								theWebUI.speedGraph.setMaxSeconds(parseInt(theWebUI.settings['webui.speedgraph.max_seconds']))
+								theWebUI.speedGraph.draw();
+								break;
+							}
 						}
 					}
 					else
@@ -850,13 +897,21 @@ var theWebUI =
 			theWebUI.settings["webui."+ndx+".sindex2"] = table.obj.secIndex;
 			theWebUI.settings["webui."+ndx+".rev2"] = table.obj.secRev;
 		});
-	        var cookie = {};
-	        theWebUI.settings["webui.search"] = theSearchEngines.current;
-	        $.each(theWebUI.settings, function(i,v)
+
+		theWebUI.settings['webui.selected_tab.last'] = theWebUI.activeView;
+		const savedActLbls = {}
+		for (const labelType of ['pstate_cont', 'plabel_cont', 'flabel_cont', 'ptrackers_cont']) {
+			savedActLbls[labelType] = theWebUI.actLbls[labelType];
+		}
+		theWebUI.settings['webui.selected_labels.last'] = savedActLbls;
+		theWebUI.settings['webui.open_tegs.last'] = Object.values(theWebUI.tegs).map(t => t.val);
+		var cookie = {};
+		theWebUI.settings["webui.search"] = theSearchEngines.current;
+		for(const [i,v] of Object.entries(theWebUI.settings))
 		{
 			if((/^webui\./).test(i))
 				cookie[i] = v;
-		});
+		}
 		theWebUI.request("?action=setuisettings&v=" + JSON.stringify(cookie),reply);
 	},
 
@@ -1769,9 +1824,12 @@ var theWebUI =
 		this.updateTegs(Object.values(this.tegs));
 		this.updateTegLabels(Object.keys(this.tegs));
 		this.loadTorrents();
-		this.getTotal();
 
 		this.updateViewRows(table)
+
+		this.getTotal();
+		if (this.settings['webui.show_open_status'])
+			this.getOpenStatus();
 
 		// Cleanup memory leaks
 		tArray = null;
@@ -1829,6 +1887,16 @@ var theWebUI =
    	addTotal: function( d )
 	{
 	        $.extend(this.total,d);
+	},
+
+	getOpenStatus: function()
+	{
+		this.request("?action=getopen", [this.addOpenStatus, this]);
+	},
+
+	addOpenStatus: function(stopen)
+	{
+		Object.assign(this.stopen, stopen);
 	},
 
 	/**
@@ -1902,6 +1970,17 @@ var theWebUI =
 // labels
 //
 
+	createTeg: function(str) {
+			var tegId = "teg_"+this.lastTeg;
+			this.lastTeg++;
+			var el = this.createSelectableLabelElement(tegId, str, theWebUI.tegContextMenu).addClass('teg');
+			$("#lblf").append( el );
+			this.tegs[tegId] = { val: str };
+			this.updateTegs([this.tegs[tegId]]);
+			this.updateTegLabels([tegId]);
+			return el;
+	},
+
 	setTeg: function(str)
 	{
 		str = str.trim();
@@ -1913,13 +1992,7 @@ var theWebUI =
 					this.switchLabel($$(id));
 					return;
 				}
-			var tegId = "teg_"+this.lastTeg;
-			this.lastTeg++;
-			var el = this.createSelectableLabelElement(tegId, str, theWebUI.tegContextMenu).addClass('teg');
-			$("#lblf").append( el );
-			this.tegs[tegId] = { val: str };
-			this.updateTegs([this.tegs[tegId]]);
-			this.updateTegLabels([tegId]);
+			const el = this.createTeg(str);
 			this.resetLabels();
 			this.switchLabel(el[0]);
 		}
@@ -2075,6 +2148,10 @@ var theWebUI =
 						let ele = $$(cid);
 						if(!ele) {
 							ele = this.createSelectableLabelElement(cid, clbl, theWebUI.labelContextMenu);
+							if (cid === this.actLbls['plabel_cont']) {
+								$('#plabel_cont').find('.sel').removeClass('sel');
+								ele.addClass('sel');
+							}
 							if (prevCustomEle) {
 								ele.insertAfter(prevCustomEle);
 							} else {
@@ -2219,14 +2296,12 @@ var theWebUI =
 	updateLabel: function(label, count, size, showSize, text, prefix, titleText) {
 		var li = $(label);
 		var pfx = li.children('.label-prefix');
-		if (!prefix || prefix === '') {
+		if (!prefix || !prefix.length) {
 			pfx.hide();
 		} else {
-			if (prefix !== pfx.text()) {
-				pfx.empty();
-				for (var c of prefix) {
-					pfx.append($('<div>').text(c));
-				}
+			pfx.empty();
+			for (var c of prefix) {
+				pfx.append($('<div>').text(c));
 			}
 			pfx.show();
 		}
@@ -2240,11 +2315,10 @@ var theWebUI =
 			' ('+ count + ( showSize ? ' ; '+ lblSize : '') +')');
 		var sizeSpan = li.children('.label-size');
 		sizeSpan.text(lblSize);
-		if (size && showSize) {
+		if (size && showSize)
 			sizeSpan.show();
-		} else {
+		else
 			sizeSpan.hide();
-		}
 	},
 
 	idToLbl: function(id) {
@@ -2253,6 +2327,15 @@ var theWebUI =
 
 	updateLabels: function(wasRemoved)
 	{
+		const catlist = $($$('CatList'));
+		if (theWebUI.settings['webui.labelsize_rightalign'])
+			catlist.addClass('rightalign-labelsize');
+		else
+			catlist.removeClass('rightalign-labelsize');
+		if (theWebUI.settings['webui.show_label_text_overflow'])
+			catlist.removeClass('hide-textoverflow');
+		else
+			catlist.addClass('hide-textoverflow');
 		this.updateAllFilterLabel('pstate_cont', this.settings["webui.show_statelabelsize"]);
 		this.updateAllFilterLabel('plabel_cont', this.settings["webui.show_labelsize"]);
 		this.updateAllFilterLabel('flabel_cont', this.settings["webui.show_searchlabelsize"]);
@@ -2292,20 +2375,28 @@ var theWebUI =
 
 			this.actLbls[labelType] = obj.id;
 
-			var table = this.getTable("trt");
-			table.scrollTo(0);
-			for(var k in this.torrents)
-				this.filterByLabel(k);
-			table.clearSelection();
-			if(this.dID != "")
-			{
-				this.dID = "";
-				this.clearDetails();
-			}
-			table.refreshRows();
+			this.filterTorrentTable();
 
-			this.updateViewRows(table);
+			if (this.settings['webui.open_tegs.keep']
+				||this.settings['webui.selected_labels.keep'])
+				this.save();
 		}
+	},
+
+	filterTorrentTable: function() {
+		var table = this.getTable("trt");
+		table.scrollTo(0);
+		for(var k in this.torrents)
+			this.filterByLabel(k);
+		table.clearSelection();
+		if(this.dID != "")
+		{
+			this.dID = "";
+			this.clearDetails();
+		}
+		table.refreshRows();
+
+		this.updateViewRows(table);
 	},
 
 	filterByLabel: function(sId)
@@ -2511,6 +2602,19 @@ var theWebUI =
 	        $("#stdown_speed").text(dl);
 	        $("#stdown_limit").text((self.total.rateDL>0 && self.total.rateDL<327625*1024) ? theConverter.speed(self.total.rateDL) : theUILang.no);
 	        $("#stdown_total").text(theConverter.bytes(self.total.DL));
+
+		if (self.settings['webui.show_open_status']) {
+			for (const opnType of ['http', 'sock', 'fd']) {
+				const ele = $($$('stopen_'+opnType+'_count'));
+				if (self.stopen[opnType] > -1)
+					ele.text(self.stopen[opnType] + ' ' + opnType).show();
+				else
+					ele.hide()
+			}
+			$("#st_fd").show();
+		} else {
+			$("#st_fd").hide();
+		}
 	},
 
 	setDLRate: function(spd)
@@ -2736,6 +2840,8 @@ var theWebUI =
 	{
 		$("#tooltip").remove();
 		this.activeView=id;
+		if (this.settings['webui.selected_tab.keep'])
+			this.save();
 	},
 
 	request: function(qs, onComplite, isASync)
@@ -2753,15 +2859,14 @@ var theWebUI =
 		Ajax(this.url + qs, isASync, onComplite, null, this.error, -1);
    	},
 
-   	show: function()
-   	{
-   		if($("#cover").is(":visible"))
+	show: function()
+	{
+		if($("#cover").is(":visible"))
 		{
 			$("#cover").hide();
 			setTimeout(theWebUI.resize, 0);
-			theTabs.show("lcont");
 		}
-   	},
+	},
 
    	msg: function(s)
    	{
