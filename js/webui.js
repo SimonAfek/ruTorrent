@@ -5,7 +5,7 @@
 
 var theWebUI =
 {
-        version: "4.0.4",
+  version: "4.1",
 	tables:
 	{
 		trt:
@@ -108,8 +108,9 @@ var theWebUI =
 			onselect:	function(e,id) { theWebUI.prsSelect(e,id) },
 			ondblclick:	function(obj)
 			{
-				if(obj.id && theWebUI.peers[obj.id])
-					window.open(theURLs.IPQUERYURL + theWebUI.peers[obj.id].ip.replace(/^\[?(.+?)\]?$/, '$1'), "_blank");
+				const queryUrl = theWebUI.getPeerIpQueryUrl(obj.id);
+				if (queryUrl !== '#')
+					window.open(queryUrl, "_blank");
 				return(false);
 			}
 		},
@@ -225,7 +226,8 @@ var theWebUI =
 	},
 	actLbls:
 	{
-		"pstate_cont": ""
+		'pstate_cont': [],
+		'plabel_cont': []
 	},
 	cLabels:	{},
 	stateLabels: {},
@@ -511,22 +513,20 @@ var theWebUI =
 		}
 		// switch to labels if keeping selected labels is enabled
 		if (theWebUI.settings["webui.selected_labels.keep"]) {
-			this.actLbls = this.settings['webui.selected_labels.last'];
-			for(const labelType in this.actLbls) {
-				if (labelType in this.actLbls) {
-					const ele = $$(this.actLbls[labelType]);
-					if (ele) {
-						$($$(labelType)).find(".sel").removeClass("sel");
-						$(ele).addClass("sel");
-					}
-				}
+			const actLbls = this.settings['webui.selected_labels.last'];
+			for(const [labelType, lbls] of Object.entries(actLbls)) {
+				// consider legacy single-label selection
+				this.actLbls[labelType] = Array.isArray(lbls) ? lbls : lbls ? [lbls] : [];
 			}
+		}
+		for (const labelType of ['pstate_cont', 'plabel_cont', 'flabel_cont']) {
+			this.refreshLabelSelection(labelType);
 		}
 
 		// user must be able add peer when peers are empty
 		$("#PeerList .stable-body").mouseclick(function(e)
 		{
-			if(e.which==3)
+			if(e.which==3 && $(e.target).hasClass('stable-body'))
 			{
 				theWebUI.prsSelect(e,null);
 				return(true);
@@ -985,6 +985,13 @@ var theWebUI =
    		return(str);
    	},
 
+	getPeerIpQueryUrl: function(peerId)
+	{
+		return (peerId in this.peers)
+			? (theURLs.IPQUERYURL + this.peers[peerId].ip.replace(/^\[?(.+?)\]?$/, '$1'))
+			: '#';
+	},
+
 	addNewPeer: function()
 	{
 		this.request("?action=addpeer&hash="+this.dID+"&f="+encodeURIComponent($("#peerIP").val()), [this.updatePeers,this]);
@@ -1031,9 +1038,20 @@ var theWebUI =
 		        	theContextMenu.add([CMENU_SEP]);
 				}
 			}
-			if(selCount)
+			if(selCount === 1)
 			{
-				theContextMenu.add([theUILang.peerDetails, (selCount > 1) ? null : "theWebUI.getTable('prs').ondblclick({ id: '"+id+"'})"]);
+				$(theContextMenu.obj)
+					.append(
+						$('<li>')
+						.addClass('menuitem')
+						.append(
+							$('<a>')
+							.addClass(['menu-cmd'])
+							.attr({
+								'rel': 'noreferrer noopener',
+								'target': '_blank',
+								'href': this.getPeerIpQueryUrl(id)})
+							.text(theUILang.peerDetails)));
 			}
 		}
 		return(ret);
@@ -1098,8 +1116,6 @@ var theWebUI =
 						table.setAttr(sId,trk[i].attr);
 	            			}
 					trk[i]._updated = true;
-	        	 		$('#'+sId+" > .stable-TrackerList-col-0").css( "font-weight",
-			        	 	($type(theWebUI.torrents[hash]) && (i==theWebUI.torrents[hash].tracker_focus)) ? "bold" : "normal" );
         	 		}
 			}
 	   	});
@@ -1898,7 +1914,7 @@ var theWebUI =
 
 	/**
 	 * @typedef {array.<string>} StatusIcon
-	 * first element: icon name
+	 * first element: icon nameDevelop
 	 * second element: localized status
 	 */
 
@@ -1968,9 +1984,9 @@ var theWebUI =
 //
 
 	createTeg: function(str) {
-			var tegId = "teg_"+this.lastTeg;
+			const tegId = "teg_"+this.lastTeg;
 			this.lastTeg++;
-			var el = this.createSelectableLabelElement(tegId, str, theWebUI.tegContextMenu).addClass('teg');
+			const el = this.createSelectableLabelElement(tegId, str, theWebUI.labelContextMenu).addClass('teg');
 			$("#lblf").append( el );
 			this.tegs[tegId] = { val: str };
 			this.updateTegs([this.tegs[tegId]]);
@@ -1981,21 +1997,18 @@ var theWebUI =
 	setTeg: function(str)
 	{
 		str = str.trim();
-		if(str!="")
-		{
-			for( var id in this.tegs )
-				if(this.tegs[id].val==str)
-				{
-					this.switchLabel($$(id));
-					return;
-				}
-			const el = this.createTeg(str);
+		const validTeg = str !== '';
+		let teg_entry = validTeg && Object.entries(this.tegs)
+			.find(([_,teg]) => teg.val == str);
+		if (!teg_entry) {
 			this.resetLabels();
-			this.switchLabel(el[0]);
+			if (validTeg) {
+				const teg = this.createTeg(str);
+				teg_entry = [teg.id, teg];
+			}
 		}
-		else
-		{
-			this.resetLabels();
+		if (teg_entry) {
+			this.switchLabel('flabel_cont', teg_entry[0]);
 		}
 	},
 
@@ -2031,10 +2044,13 @@ var theWebUI =
 		}
 	},
 
-	removeTeg: function(id)
+	removeActiveTegs: function()
 	{
-		delete this.tegs[id];
-		$($$(id)).remove();
+		const tegIds = this.actLbls['flabel_cont'] ?? [];
+		for (const tegId of tegIds) {
+			delete this.tegs[tegId];
+			$($$(tegId)).remove();
+		}
 		this.resetLabels();
 	},
 
@@ -2047,51 +2063,61 @@ var theWebUI =
 		this.resetLabels();
 	},
 
-	tegContextMenu: function(e)
+	labelContextMenu: function(e)
 	{
-	        if(e.which==3)
-	        {
-		        var table = theWebUI.getTable("trt");
+		const el = e.delegateTarget;
+		const labelType = $(el).parents('.catpanel_cont')[0].id;
+		const table = theWebUI.contextMenuTable(labelType, el);
+		const rightClick = e.which===3;
+		if (rightClick)
+		{
 			table.clearSelection();
-			theWebUI.switchLabel(this);
+		}
+		if (!(rightClick && (theWebUI.actLbls[labelType] ?? []).includes(el.id))) {
+			theWebUI.switchLabel(labelType, el.id, e.metaKey, e.shiftKey);
+		}
+		if (rightClick)
+		{
 			table.fillSelection();
-			var id = table.getFirstSelected();
-			if(id)
+			const id = table.getFirstSelected();
+			const entries = theWebUI.contextMenuEntries(labelType, el);
+			if (!(entries && (id || entries.length)))
 			{
-				theWebUI.createMenu(null, id);
-		   		theContextMenu.add([CMENU_SEP]);
+				theContextMenu.hide();
+				return false;
 			}
-			else
+			// show a context menu
+			if (id) {
+				theWebUI.createMenu(null, id);
+				if (entries.length) {
+					theContextMenu.add([CMENU_SEP]);
+				}
+			} else {
 				theContextMenu.clear();
-			theContextMenu.add([theUILang.removeTeg, "theWebUI.removeTeg('"+this.id+"');"]);
-			theContextMenu.add([theUILang.removeAllTegs, "theWebUI.removeAllTegs();"]);
+			}
+			for (const entry of entries) {
+				theContextMenu.add(entry);
+			}
 			theContextMenu.show(e.clientX,e.clientY);
 		}
-		else
-			theWebUI.switchLabel(this);
 		return(false);
 	},
 
-	labelContextMenu: function(e)
-	{
-	        if(e.which==3)
-	        {
-		        var table = theWebUI.getTable("trt");
-			table.clearSelection();
-			theWebUI.switchLabel(this);
-			table.fillSelection();
-			var id = table.getFirstSelected();
-			if(id)
-			{
-				theWebUI.createMenu(null, id);
-				theContextMenu.show(e.clientX,e.clientY);
-			}
-			else
-				theContextMenu.hide();
+	contextMenuTable: function(labelType, el) {
+		return theWebUI.getTable('trt');
+	},
+
+	contextMenuEntries: function(labelType, el) {
+		if (labelType === 'flabel_cont') {
+			return (
+				(this.actLbls['flabel_cont'] ?? []).length ? [
+					[theUILang.removeTeg, "theWebUI.removeActiveTegs();"]
+				] : []
+			).concat([
+				[theUILang.removeAllTegs, "theWebUI.removeAllTegs();"]
+			]);
 		}
-		else
-			theWebUI.switchLabel(this);
-		return(false);
+		return [];
 	},
 
 	cLabelText: function(lbl) {
@@ -2156,8 +2182,8 @@ var theWebUI =
 						let ele = $$(cid);
 						if(!ele) {
 							ele = this.createSelectableLabelElement(cid, clbl, theWebUI.labelContextMenu);
-							if (cid === this.actLbls['plabel_cont']) {
-								$('#plabel_cont').find('.sel').removeClass('sel');
+							if (this.actLbls['plabel_cont'].includes(cid)) {
+								$('#plabel_cont .-_-_-all-_-_-').removeClass('sel');
 								ele.addClass('sel');
 							}
 							if (prevCustomEle) {
@@ -2192,21 +2218,24 @@ var theWebUI =
 			label.hasNext = [...hasNext];
 			hasNext[label.level] = true;
 		}
-		var actDeleted = false;
-		var pLabels = ['nlb'].concat(Object.keys(this.cLabels));
+		const pLabels = ['nlb'].concat(Object.keys(this.cLabels));
 		p.children().each(function(ndx,val)
 		{
 			var id = val.id;
 			var lbl = (id&&theWebUI.idToLbl(id))||'nlb';
 			if (!pLabels.includes(lbl)) {
 				$(val).remove();
-				if(theWebUI.actLbls["plabel_cont"] == id)
-					actDeleted = true;
 			}
 		});
-		if(actDeleted)
+		const actLbls = theWebUI.actLbls['plabel_cont'];
+		const residualActLbls = actLbls.filter(labelId => pLabels.includes(theWebUI.idToLbl(labelId)));
+		const actDeleted = actLbls.length !== residualActLbls.length;
+		if (actDeleted)
 		{
-			this.switchLabel($("#plabel_cont .-_-_-all-_-_-").get(0))
+			// filter out removed labels (no re-filtering required)
+			theWebUI.actLbls['plabel_cont'] = residualActLbls;
+			// no theWebUI.switchLabel: to avoid switching away from other table views (extsearch, rss)
+			this.refreshLabelSelection('plabel_cont');
 		}
 	},
 
@@ -2366,28 +2395,74 @@ var theWebUI =
 	},
 
 	resetLabels: function() {
-		var allLbls = $('.-_-_-all-_-_-');
-		for(var i = 0; i < allLbls.length; i++)
-			this.switchLabel(allLbls.get(i));
+		for (const labelType of Object.keys(this.actLbls)) {
+			this.actLbls[labelType] = [];
+			this.refreshLabelSelection(labelType);
+		}
+		this.filterTorrentTable();
 	},
 
-	switchLabel: function(obj)
+	switchLabel: function(labelType, targetId, toggle=false, range=false)
 	{
-		var panelCont = $(obj).closest(".catpanel_cont");
-		var labelType = panelCont.attr('id')
+		const oldLabelIds = this.actLbls[labelType] ?? [];
+		const oldSelSet = new Set(oldLabelIds);
+		let labelIds = targetId ? [targetId] : [];
 
-		if(this.actLbls[labelType] != obj.id)
-		{
-			panelCont.find(".sel").removeClass("sel");
-			$(obj).addClass("sel");
+		if (range && targetId) {
+			// range selection
+			const anchor = oldLabelIds.length ? oldLabelIds[toggle ? oldLabelIds.length-1 : 0] : 'all';
+			if (targetId !== anchor && !(toggle && oldLabelIds.includes(targetId))) {
+				// select labelIds between anchor and target
+				const allTypeLabelIds = $($$(labelType)).find('.cat').map((_,e) => e.id || 'all');
+				const indexOfLabel = lid => Number(Object.entries(allTypeLabelIds).find(([_,l]) => l === lid)[0]);
+				const a = indexOfLabel(anchor);
+				const t = indexOfLabel(targetId);
 
-			this.actLbls[labelType] = obj.id;
+				const rangeIndices = [];
+				const step = a <= t ? 1 : -1;
+				for (let i = a; i != t; i += step) {
+					rangeIndices.push(i);
+				}
+				rangeIndices.push(t);
+
+				labelIds = rangeIndices
+					.map(i => allTypeLabelIds[i])
+					.filter(lid => lid !== 'all' && !(toggle && oldSelSet.has(lid)));
+			}
+		}
+
+		if (toggle) {
+			const selSet = new Set(labelIds);
+			// unselect ids if already selected
+			labelIds = oldLabelIds.filter(id => !selSet.has(id)).concat(
+				labelIds.filter(id => !oldSelSet.has(id))
+			);
+		}
+
+		if (labelIds.some(lid => !oldLabelIds.includes(lid)) || oldLabelIds.some(lid => !labelIds.includes(lid))) {
+			// change in label selection
+			this.actLbls[labelType] = labelIds;
+
+			this.refreshLabelSelection(labelType);
 
 			this.filterTorrentTable();
 
 			if (this.settings['webui.open_tegs.keep']
 				||this.settings['webui.selected_labels.keep'])
 				this.save();
+		}
+	},
+
+	refreshLabelSelection: function(labelType) {
+		const container = $($$(labelType));
+		container.find('.sel').removeClass('sel');
+		const labelIds = this.actLbls[labelType] ?? [];
+		if (labelIds.length) {
+			for (const labelId of labelIds) {
+				$($$(labelId)).addClass('sel');
+			}
+		} else {
+				container.find('.-_-_-all-_-_-').addClass('sel');
 		}
 	},
 
@@ -2409,33 +2484,25 @@ var theWebUI =
 
 	filterByLabel: function(sId)
 	{
-		var table = this.getTable("trt");
-
-		var showRow = true;
-		for(var lblType in this.actLbls)
-		{
-			if (lblType != "plabel_cont" && lblType != "pstate_cont" && lblType != "flabel_cont")
-				continue;
-
-			var actLbl = this.actLbls[lblType];
-
-			if($($$(actLbl)).hasClass("teg"))
-			{
-				var teg = this.tegs[actLbl];
-				if(teg)
-				{
-					if(!this.matchTeg(teg, table.getValueById(sId, "name")))
-						showRow = false;
-				}
-			}
-			else if(table.getAttr(sId, "label").indexOf(actLbl) == -1)
-				showRow = false;
-		}
-
-		if(showRow)
+		const table = this.getTable('trt');
+		if(this.isTorrentRowShown(table, sId))
 			table.unhideRow(sId);
 		else
 			table.hideRow(sId);
+	},
+
+	isTorrentRowShown: function(table, sId)
+	{
+		const title = table.getValueById(sId, 'name');
+		const label = table.getAttr(sId, 'label');
+		return Object.entries(this.actLbls).filter(
+			([labelType, _]) => ['plabel_cont', 'pstate_cont', 'flabel_cont'].includes(labelType)
+		).every(([labelType, actLbls]) => !actLbls.length || (
+			// filter by torrent label
+			labelType !== 'flabel_cont' ? actLbls.some(labelId => label.includes(labelId))
+			// filter by title search teg
+			: actLbls.some(labelId => !(labelId in this.tegs) || this.matchTeg(this.tegs[labelId], title))
+		));
 	},
 
 //
@@ -2553,7 +2620,8 @@ var theWebUI =
 			$("#wa").text(theConverter.bytes(d.skip_total, 'details'));
 	        	$("#bf").text(d.base_path);
 	        	$("#co").text(theConverter.date(iv(d.created)+theWebUI.deltaTime/1000));
-			$("#tu").text($type(this.trackers[this.dID]) && $type(this.trackers[this.dID][d.tracker_focus]) ? this.trackers[this.dID][d.tracker_focus].name : '');
+			const trackers = this.trackers[this.dID] ?? [];
+			$("#tu").text(trackers.length ? (trackers[0].name  + (trackers.length > 1 ? ` ${theUILang.of} ${d.tracker_size}` : '')) : `${d.tracker_size}`);
 	        	$("#hs").text(this.dID.substring(0,40));
 			$("#ts").text(d.msg);
 			var url = d.comment.trim();

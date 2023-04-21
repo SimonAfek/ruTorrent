@@ -47,7 +47,7 @@ var dxSTable = function()
 	this.viewRows = 0;
 	this.cols = 0;
 	this.colsdata = new Array();
-	this.stSel = null;
+	this.stSel = [];
 	this.format = function(r) { return r; };
 	this.sortId = '';
 	this.reverse = 0;
@@ -211,7 +211,12 @@ dxSTable.prototype.create = function(ele, styles, aName)
 	this.dBody.appendChild(this.tBody);
 	this.bpad = $("<div>").addClass("stable-virtpad").get(0);
 	this.dBody.appendChild(this.bpad);
-	this.tBody.tb = $("<tbody>").get(0);
+	const tb = $("<tbody>");
+	tb.mouseclick(this.handleClick.bind(this));
+	if(typeof this.ondblclick === 'function') {
+		tb.dblclick(this.handleClick.bind(this));
+	}
+	this.tBody.tb = tb[0];
 	this.tBody.appendChild(this.tBody.tb);
 
 	cg = $("<colgroup>");
@@ -237,6 +242,17 @@ dxSTable.prototype.create = function(ele, styles, aName)
 	this.rowCover = $("<div>").addClass("rowcover").get(0);
 	this.dHead.appendChild(this.rowCover);
 	this.created = true;
+}
+
+dxSTable.prototype.handleClick = function(e)
+{
+	const row = $(e.target).parents('tr')[0];
+	if (e.type == 'dblclick') {
+		this.ondblclick(row);
+	} else if (e.which === 3 || e.which === 1) {
+		// only select rows with left or right click
+		this.selectRow(e, row);
+	}
 }
 
 dxSTable.prototype.toggleColumn = function(i)
@@ -1103,105 +1119,65 @@ dxSTable.prototype.selectRow = function(e, row)
 {
 	if(!$.support.touchable)
 		this.bindKeys();
-	var id = row.id;
-	if(!((e.which==3) && (this.rowSel[id] == true))) 
-	{
-		if(e.shiftKey) 
-		{
-			if(this.stSel == null) 
+
+	const targetId = row.id;
+	const rightClick = e.which === 3;
+	if (!(rightClick && this.rowSel[targetId])) {
+		const toggle = e.metaKey;
+		const range = e.shiftKey;
+		const oldSel = this.stSel ?? [];
+		const anchor = oldSel.length ? oldSel[toggle ? oldSel.length-1 : 0] : null;
+		let selection = [];
+
+		if (range && anchor && anchor !== targetId) {
+			// range selection
+			let behindAnchor = false;
+			let behindTarget = false;
+			let reverse = false;
+			for(let i = 0; i < this.rowIDs.length; i++)
 			{
-				this.stSel = id;
-				this.rowSel[id] = true;
-				this.selCount = 1;
-			}
-			else 
-			{
-				this.selCount = 0;
-				var _81 = false, passedCID = false, k = "";
-				for(var i = 0, l = this.rowIDs.length; i < l; i++) 
-				{
-					k = this.rowIDs[i];
-					this.rowSel[k] = false;
-					if((k == this.stSel) || _81) 
-					{
-						if(!passedCID) 
-						{
-							this.rowSel[k] = true;
-							this.selCount++;
-                     				}
-						else 
-						{
-							if((k == this.stSel) || (k == id)) 
-							{
-				                        	this.rowSel[k] = true;
-								this.selCount++;
-							}
-						}
+				const id = this.rowIDs[i];
+				behindAnchor |= anchor === id;
+				behindTarget |= targetId === id;
+				reverse |= behindTarget && !behindAnchor;
+
+				if (
+					(behindAnchor || behindTarget)
+					&& !(toggle && this.rowSel[id])
+					&& this.rowdata[id].enabled
+				) {
+					if (reverse) {
+						selection.unshift(id);
+					} else {
+						selection.push(id);
 					}
-					else 
-					{
-						if((k == id) || passedCID) 
-						{
-							if(!_81) 
-							{
-								this.rowSel[k] = true;
-								this.selCount++;
-							}
-							else 
-							{
-								if((k == this.stSel) || (k == id)) 
-								{
-									this.rowSel[k] = true;
-									this.selCount++;
-                           					}
-                        				}
-                     				}
-                  			}
-					if(!this.rowdata[k].enabled && this.rowSel[k]) 
-					{
-						this.rowSel[k] = false;
-						this.selCount--;
-                  			}
-					if(k == this.stSel) 
-						_81 = true;
-					if(k == id) 
-						passedCID = true;
+				}
+				if (behindAnchor && behindTarget) {
+					break;
 				}
 			}
+		} else {
+			selection = [targetId];
 		}
-		else 
-		{
-			if(e.metaKey) 
-			{
-				this.stSel = id;
-				this.rowSel[id] =!this.rowSel[id];
-				if(this.rowSel[id]) 
-					this.selCount++;
-				else 
-					this.selCount--;
-			}
-			else 
-			{
-				this.stSel = id;
-				this.selCount = 0;
-				for(var k in this.rowSel) 
-				{
-					if(k == id) 
-					{
-						this.rowSel[k] = true;
-						this.selCount++;
-					}
-					else 
-						this.rowSel[k] = false;
-				}
-			}
+
+		if (toggle) {
+			const selSet = new Set(selection);
+			// unselect ids if already selected
+			selection = oldSel.filter(id => !selSet.has(id)).concat(
+				selection.filter(id => !this.rowSel[id])
+			);
 		}
-		if(this.selCount == 0) 
-			this.stSel = null;
+		const fullSelSet = new Set(selection);
+		for (const id in this.rowSel) {
+			this.rowSel[id] = fullSelSet.has(id);
+		}
+		this.selCount = fullSelSet.size;
+		this.stSel = selection;
 		this.refreshSelection();
 	}
+
 	if($type(this.onselect) == "function") 
-		this.onselect(e, id);
+		this.onselect(e, targetId);
 	return(false);
 }
 
@@ -1255,57 +1231,54 @@ dxSTable.prototype.addRow = function(cols, sId, icon, attr, fast = false)
 	}
 }
 
-dxSTable.prototype.createRow = function(cols, sId, icon, attr) 
+dxSTable.prototype.createIconHTML = function(icon)
 {
-	if(!$type(attr)) 
-		attr = [];
-	var tr = $("<tr>").attr( { index: this.rows, title: cols[0] });
-	if(sId != null) 
-		tr.attr("id",sId);
-	var self = this;
-	if(this.colorEvenRows) 
-		tr.addClass( (this.rows & 1) ? "odd" : "even" );
+	return icon == null ? '' : (typeof icon === 'object'
+		? $('<img>').attr({src: icon.src, width: 16, height: 16}).css('background-image', 'none').addClass('stable-icon')
+		: $('<span>').addClass(['stable-icon', icon]))[0].outerHTML;
+}
 
-	tr.mouseclick(function(e) { return(self.selectRow(e, this)); });
-
-	if($type(this.ondblclick) == "function") 
-		tr.on('dblclick', function(e) { return(self.ondblclick(this)); } );
-
-	for(var k in attr) 
-		tr.attr(k, attr[k]);
-	var data = this.rowdata[sId].fmtdata;
-	var s = "";
-	var div;
-	var ret;
-	for(var i = 0; i < this.cols; i++) 
-	{
-		var ind = this.colOrder[i];
-		s+="<td class='stable-"+this.dCont.id+"-col-"+ind+"'";
-		var span1 = "";
-		var span2 = "";
-		if(this.colsdata[i].type==TYPE_PROGRESS)
-		{
-			s+=" rawvalue='"+($type(cols[ind]) ? cols[ind] : "")+"'";
-		        span1 = "<span class='meter-text' style='overflow: visible'>"+escapeHTML(data[ind])+"</span>";
-			div = "<div class='meter-value' style='float: left; background-color: "+
-		 		(new RGBackground()).setGradient(this.prgStartColor,this.prgEndColor,parseFloat(data[ind])).getColor()+
-				"; width: "+iv(data[ind])+"%"+
-				"; visibility: "+(iv(data[ind]) ? "visible" : "hidden")+
-				"'>&nbsp;</div>";
-		}
-		else
-			div = "<div>"+((String(data[ind]) == "") ? "&nbsp;" : escapeHTML(data[ind]))+"</div>";
-		if((ind == 0) && (icon != null)) 
-			span2 = "<span class='stable-icon "+icon+"'></span>";
-		if(!this.colsdata[i].enabled && !browser.isIE7x)
-			s+=" style='display: none'";
-		s+=">";
-		s+=span1;
-		s+=span2;
-		s+=div;
-		s+="</td>";
+dxSTable.prototype.createRow = function(cols, sId, icon, attr)
+{
+	const attrs = { id: sId, index: this.rows, title: cols[0] };
+	if (sId == null) {
+		delete attrs['id'];
 	}
-	ret = tr.append(s).get(0);
+	Object.assign(attrs, attr || {});
+	const data = this.rowdata[sId]?.fmtdata || {};
+
+	const ret = document.createElement('tr');
+	ret.className = this.colorEvenRows ? ((this.rows & 1) ? "odd" : "even") : "";
+	for(const [a,v] of Object.entries(attrs)) {
+		const attr_node = document.createAttribute(a);
+		attr_node.value = v;
+		ret.setAttributeNode(attr_node);
+	}
+	ret.innerHTML = [...Array(this.cols).keys()]
+			.map((_,i) => [this.colOrder[i], this.colsdata[i]])
+			.map(([ind, cdat]) => ({
+				td: [
+					`<td class="stable-${this.dCont.id}-col-${ind}"`,
+					Boolean(cdat.enabled || browser.isIE7x) ?	'>' : ' style="display: none">',
+					ind === 0 ? this.createIconHTML(icon) : ''
+				],
+				celldata: data[ind] || '',
+				rawvalue: cols[ind] || '',
+				progress: cdat.type == TYPE_PROGRESS,
+			}))
+			.flatMap(({td, celldata, rawvalue, progress}) => progress
+				? [
+					td[0], ` rawvalue="${rawvalue}"`, ...td.slice(1),
+					'<span class="meter-text" style="overflow: visible">', escapeHTML(celldata), '</span>',
+					'<div class="meter-value" style="', Object.entries(this.progressStyle(celldata)).map(pair => pair.join(': ')).join(';'), '">&nbsp;</div>',
+					'</td>'
+				]
+				: [
+					...td,
+					'<div>', escapeHTML(celldata) || '&nbsp;', '</div>',
+					'</td>'
+				]
+			).join('');
 	if(!browser.isIE7x)
 	{
 		var _e = this.tBody.getElementsByTagName("colgroup")[0].getElementsByTagName("col");
@@ -1472,6 +1445,7 @@ dxSTable.prototype.clearSelection = function()
 	for(var k in this.rowSel)
 		this.rowSel[k] = false;
 	this.selCount = 0;
+	this.stSel = [];
 	this.refreshSelection();
 }
 
@@ -1489,13 +1463,14 @@ dxSTable.prototype.correctSelection = function()
 
 dxSTable.prototype.fillSelection = function() 
 {
-	this.selCount = 0;
+	this.stSel = [];
 	for(var k in this.rowSel) 
 		if(this.rowdata[k].enabled)
 		{
 			this.rowSel[k] = true;
-			this.selCount++;
+			this.stSel.push(k);
 		}
+	this.selCount = this.stSel.length;
 	this.refreshSelection();
 }
 
@@ -1582,42 +1557,52 @@ dxSTable.prototype.setValueById = function(row, id, val)
 	return(this.setValue(row, this.getColById(id), val));
 }
 
+dxSTable.prototype.progressStyle = function(val)
+{
+  const nval = iv(val);
+  return {
+    float: 'left',
+    width: `${nval}%`,
+    'background-color': new RGBackground()
+      .setGradient(this.prgStartColor, this.prgEndColor, parseFloat(val))
+      .getColor(),
+    visibility: nval ? 'visible' : 'hidden',
+  };
+}
+
 dxSTable.prototype.setValue = function(row, col, val)
 {
-	if((col>=0) && this.rowdata[row])
+	const rdata = this.rowdata[row];
+	if((col>=0) && rdata)
 	{
-		this.rowdata[row].data[col] = val;
-		var r = $$(row);
-		var rawvalue = val;
-		var arr = [];
+		rdata.data[col] = val;
+		let arr = [];
 		arr[col] = val;
-		val = this.format(this,arr)[col];
+		const fmtVal = this.format(this,arr)[col];
+		const fmtdata = rdata.fmtdata;
 
-		if(this.rowdata[row].fmtdata[col] != val)
+		if(fmtdata[col] != fmtVal)
 		{
-			this.rowdata[row].fmtdata[col] = val;
-        		if(r)
-        		{
-	        		var c = this.getColOrder(col);
-				var td = r.cells[c];
+			fmtdata[col] = fmtVal;
+			const tr = $$(row);
+			if(tr)
+			{
+				const c = this.getColOrder(col);
+				const td = tr.cells[c];
 			
-			        if(td)
-			        {
+				if(td)
+				{
+					let textEl = td.lastChild;
 					if(this.colsdata[c].type==TYPE_PROGRESS)
 					{
-						$(td).attr("rawvalue",rawvalue);
-						td.lastChild.style.width = iv(val)+"%";
-						td.lastChild.style.backgroundColor = (new RGBackground()).setGradient(this.prgStartColor,this.prgEndColor,parseFloat(val)).getColor();
-						if(!iv(val))
-							$(td.lastChild).css({visibility: "hidden"});
-						else
-							$(td.lastChild).css({visibility: "visible"});
-						td.firstChild.innerHTML = escapeHTML(val);
+						$(td).attr('rawvalue', val)
+							.children('.meter-value')
+							.css(this.progressStyle(fmtVal));
+						textEl = td.firstChild;
 					}
-					else
-						td.lastChild.innerHTML = escapeHTML(val);
+					$(textEl).text(fmtVal);
 				}
-			}					
+			}
 			return(true);
 		}
 	}
@@ -1631,15 +1616,24 @@ dxSTable.prototype.getIcon = function(row)
 
 dxSTable.prototype.setIcon = function(row, icon) 
 {
-	if(this.rowdata[row].icon != icon)
+	const dataRow = this.rowdata[row];
+	const oldIconIsImg = Boolean(dataRow.icon?.src);
+	const newIconIsImg = Boolean(icon?.src);
+	if(newIconIsImg != oldIconIsImg ||
+		(newIconIsImg && dataRow.icon.src !== icon.src) ||
+		(!oldIconIsImg && dataRow.icon !== icon))
 	{
-		this.rowdata[row].icon = icon;
-		var r = $$(row);
+		dataRow.icon = icon;
+		const r = $$(row);
 		if(r == null) 
 			return(false);
-		var td = r.cells[this.getColOrder(0)];
-
-		td.firstChild.className = (icon) ? "stable-icon " + icon : "";
+		const td = r.cells[this.getColOrder(0)];
+		if (dataRow.icon !== null) {
+			td.firstChild.remove();
+		}
+		if (icon !== null) {
+			td.innerHTML = this.createIconHTML(icon) + td.innerHTML;
+		}
 		return(true);
 	}
 	return(false);
