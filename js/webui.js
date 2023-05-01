@@ -5,7 +5,7 @@
 
 var theWebUI =
 {
-  version: "4.1",
+  	version: "4.1.1",
 	tables:
 	{
 		trt:
@@ -387,8 +387,15 @@ var theWebUI =
 			this.catchErrors(true);
 			this.assignEvents();
 			this.resize();
-			this.update();	
+			this.update();
 		}
+	},
+	
+	createSpeedGraph: function()
+	{
+		const speedTab = $("#Speed");
+		if (speedTab.length)
+			this.speedGraph.create(speedTab);
 	},
 
 	config: function()
@@ -455,7 +462,7 @@ var theWebUI =
 			}
 			return sorter;
 		}
-		this.speedGraph.create($("#Speed"));
+		this.createSpeedGraph();
 		const tab = theWebUI.settings['webui.selected_tab.keep'] ?
 					theWebUI.settings['webui.selected_tab.last'] : 'lcont';
 		theTabs.show(tab);

@@ -1,9 +1,9 @@
 <?php
 
 require_once( dirname(__FILE__)."/../../php/util.php" );
-require_once( $rootPath.'/php/cache.php');
-require_once( $rootPath.'/php/settings.php');
-require_once( $rootPath.'/php/Snoopy.class.inc');
+require_once( dirname(__FILE__)."/../../php/cache.php" );
+require_once( dirname(__FILE__)."/../../php/settings.php" );
+require_once( dirname(__FILE__)."/../../php/Snoopy.class.inc");
 eval( FileUtil::getPluginConf( 'extsearch' ) );
 
 class commonEngine
@@ -314,8 +314,8 @@ class engineManager
 		{
 			if(rTorrentSettings::get()->isPluginRegistered("rss"))
 			{
-				global $rootPath;
-				require_once( $rootPath.'/plugins/rss/rss.php');
+				// Go back to ruTorrent root folder and include rss.php
+				require_once( dirname(__FILE__)."/../../plugins/rss/rss.php");
 				$cache  = new rCache( '/rss/cache' );
 				$rssHistory = new rRSSHistory();
 				if($cache->get($rssHistory))
