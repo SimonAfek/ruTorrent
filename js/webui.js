@@ -1252,7 +1252,7 @@ var theWebUI =
 				{
 					var entry = dir[i];
 					if(entry.link==null)
-						table.setRowById(entry.data, i, entry.icon, {link : null});
+						table.setRowById(entry.data, i, entry.icon, {link: undefined});
 				}
 			}
 		}
@@ -2007,6 +2007,7 @@ var theWebUI =
 	{
 		const tegIds = this.actLbls['flabel_cont'] ?? [];
 		for (const tegId of tegIds) {
+			delete this.labels[tegId];
 			delete this.tegs[tegId];
 			$($$(tegId)).remove();
 		}
@@ -2016,6 +2017,7 @@ var theWebUI =
 	removeAllTegs: function()
 	{
 		for (var id in this.tegs) {
+			delete this.labels[id];
 			delete this.tegs[id];
 			$($$(id)).remove();
 		}
