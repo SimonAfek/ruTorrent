@@ -67,10 +67,22 @@ function makeContent() {
 			} catch(e) {}
 	}));
 	theDialogManager.make("padd",theUILang.peerAdd,
-		'<div class="content fxcaret">'+theUILang.peerAddLabel+'<br><input type="text" id="peerIP" class="Textbox" value="my.friend.addr:6881"/></div>'+
-		'<div class="aright buttons-list"><input type="button" class="OK Button" value="'+theUILang.ok+'" onclick="theWebUI.addNewPeer();theDialogManager.hide(\'padd\');return(false);" />'+
-			'<input type="button" class="Cancel Button" value="'+theUILang.Cancel+'"/></div>',
-		true);
+		$("<div>").addClass("cont fxcaret").append(
+			$("<fieldset>").append(
+				$("<legend>").text(theUILang.peerAddLabel),
+				$("<div>").addClass("row").append(
+					$("<div>").addClass("col-12").append(
+						$("<input>").attr({type:"text", id:"peerIP", placeholder:"my.friend.addr:6881"}),
+					),
+				),
+			),
+		)[0].outerHTML +
+		$("<div>").addClass("buttons-list").append(
+			$("<button>").attr({type:"button", onclick:"theWebUI.addNewPeer();theDialogManager.hide('padd');return(false);"}).addClass("OK").text(theUILang.ok),
+			$("<button>").attr({type:"button"}).addClass("Cancel").text(theUILang.Cancel),
+		)[0].outerHTML,
+		true,
+	);
 	theDialogManager.make("tadd",theUILang.torrent_add,
 		$("<div>").addClass("cont fxcaret").append(
 			$("<form>").attr(
@@ -347,10 +359,13 @@ function makeContent() {
 		}, 0);
 	});
 	theDialogManager.make("yesnoDlg","",
-		'<div class="content" id="yesnoDlg-content"></div>'+
-		'<div id="yesnoDlg-buttons" class="aright buttons-list"><input type="button" class="OK Button" value="'+theUILang.ok+'" id="yesnoOK">'+
-		'<input type="button" class="Button Cancel" value="'+theUILang.Cancel+'" id="yesnoCancel"></div>',
-		true);
+		$("<div>").attr({id:"yesnoDlg-content"}).addClass("cont")[0].outerHTML +
+		$("<div>").attr({id:"yesnoDlg-buttons"}).addClass("buttons-list").append(
+			$("<button>").attr({type:"button", id:"yesnoOK"}).addClass("OK").text(theUILang.ok),
+			$("<button>").attr({type:"button", id:"yesnoCancel"}).addClass("Cancel").text(theUILang.Cancel),
+		)[0].outerHTML,
+		true,
+	);
 
 	const stgPanel = $("<div>").addClass("lm").append(
 		$("<ul>").append(
@@ -617,30 +632,36 @@ function makeContent() {
 		),
 		$("<fieldset>").append(
 			$("<legend>").text(theUILang.DecimalPlacesSizes),
-			$("<div>").addClass("decimalDigitEdit").append(
-				$("<div>").addClass("row").append(
-					...[
-						"", "Default", "KB", "MB", "GB", "TB", "PB",
-					].map((unit) => $("<div>").addClass(
-						unit !== "" ? "col" : "col-12 col-md-3"						
-					).text(unit !== "" ? theUILang[unit] : "")),
+			$("<div>").attr({id:"decimalDigitEdit"}).addClass("row").append(
+				$("<div>").addClass("col-12 overflow-x-auto").append(
+					$("<table>").append(
+						$("<thead>").append(
+							$("<tr>").append(
+								...[
+									"", "Default", "KB", "MB", "GB", "TB", "PB",
+								].map((unit) => $("<th>").text(theUILang[unit] ?? "")),
+							),
+						),
+						$("<tbody>").append(
+							...Object.entries({
+								catlist: theUILang.CatListSizeDecimalPlaces,
+								table: theUILang.TableSizeDecimalPlaces,
+								details: theUILang.DetailsSizeDecimalPlaces,
+								other: theUILang.OtherSizeDecimalPlaces,
+							}).map(([context, name]) => $('<tr>').append(
+								$("<td>").text(name + ": "),
+								...["default", "kb", "mb", "gb", "tb", "pb"].map(unit => $("<td>").append(
+									$("<input>").attr({
+										type: "number",
+										id: "webui.size_decimal_places." + context + "." + unit,
+										maxlength: 1,
+										min: 0,
+									}),
+								)),
+							)),
+						),
+					),
 				),
-				...Object.entries({
-					catlist: theUILang.CatListSizeDecimalPlaces,
-					table: theUILang.TableSizeDecimalPlaces,
-					details: theUILang.DetailsSizeDecimalPlaces,
-					other: theUILang.OtherSizeDecimalPlaces,
-				}).map(([context, name]) => $('<div>').addClass("row").append(
-					$("<div>").addClass("col-12 col-md-3").text(name + ": "),
-					...["default", "kb", "mb", "gb", "tb", "pb"].map(unit => $("<div>").addClass("col").append(
-						$("<input>").attr({
-							type: "number",
-							id: "webui.size_decimal_places." + context + "." + unit,
-							maxlength: 1,
-							min: 0,
-						}),
-					)),
-				)),				
 			),
 		),
 	);
@@ -695,7 +716,7 @@ function makeContent() {
 	);
 
 	theDialogManager.make("stg",theUILang.ruTorrent_settings,
-		$("<div>").attr({id: "stg_c"}).addClass("fxcaret cont").append(
+		$("<div>").attr({id: "stg_c"}).addClass("cont").append(
 			stgPanel,
 			$("<div>").attr({id: "stg-pages"}).append(
 				stgGlCont, stgDlCont, stgConCont, stgBtCont, stgFmtCont, stgAoCont,

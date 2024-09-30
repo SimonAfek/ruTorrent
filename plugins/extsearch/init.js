@@ -767,7 +767,7 @@ plugin.onLangLoaded = function() {
 					$("<input>").attr({type:"checkbox", id:id}),
 					$("<label>").attr({for:id}).text(text),
 				)),
-				$("<div>").addClass("col-12 col-md-3justify-content-md-end").append(
+				$("<div>").addClass("col-12 col-md-3 justify-content-md-end").append(
 					$("<label>").attr({for:"teglabel"}).text(theUILang.Label + ":"),
 				),
 				$("<div>").addClass("col-12 col-md-9").append(
@@ -783,15 +783,10 @@ plugin.onLangLoaded = function() {
 		)[0].outerHTML,
 		true,
 	);
-	if(thePlugins.isInstalled("_getdir"))
-	{
-		$('#tegdir_edit').after($("<input type=button>").addClass("Button").attr("id","tegBtn").on('focus', function() { this.blur(); } ));
-		var btn = new theWebUI.rDirBrowser( 'tegLoadTorrents', 'tegdir_edit', 'tegBtn' );
-		theDialogManager.setHandler('tegLoadTorrents','afterHide',function()
-		{
-			btn.hide();
-		});
+	if (thePlugins.isInstalled("_getdir")) {
+		new theWebUI.rDirBrowser("tegdir_edit");
 	}
+
 	const commonSettings = $("<fieldset>").append(
 		$("<legend>").text(theUILang.exsGlobalLimit),
 		$("<div>").addClass("row").append(
