@@ -210,7 +210,7 @@ plugin.touchEnd = function(event)
 	}
 }
 
-if($.support.touchable) 
+if($.support.touchable && browser.isSafari)
 {
 	document.addEventListener("touchstart", plugin.touchStart, false);
 	document.addEventListener("touchmove", plugin.touchMove, false);

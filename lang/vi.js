@@ -138,6 +138,10 @@ var theUILang =
  time_m				: "ph ", /*for x minutes remaining*/
  time_s				: "g ", /*for x seconds remaining*/
  Base_directory			: "Thư mục",
+ Torrent_options		: "Torrent Options",
+ Return_select_label		: "Select",
+ Add_from_file			: "Add From File",
+ Add_from_URL			: "Add From URL",
  Number_Peers_min		: "Số máy tối thiểu",
  Number_Peers_max		: "Số máy tối đa",
  Tracker_Numwant		: "Số máy mong muốn",
@@ -280,6 +284,8 @@ var theUILang =
  webBadSessionError		: "Trình bổ sung sẽ không chạy. Người chạy máy chủ Web phải có quyền thực thi trong thư mục quản lý phiên rtorrent",
  webBadSessionWarning		: "Một số tính năng sẽ không có. Người chạy máy chủ Web phải có quyền thực thi trong thư mục quản lý phiên rtorrent",
  Developers			: "Phát triển",
+ Original_webui			: "Original µTorrent WebUI",
+ rTorrent_adaption		: "rTorrent adaption (ruTorrent)",
  Check_new_version		: "Kiểm tra phiên bản mới",
  here				: "ở đây",
  Num_No				: "STT", // This means "Number". To be used as header for number count, e.g.: throttle/ratio plugin
@@ -289,9 +295,12 @@ var theUILang =
  Toggle_details			: "Bật tắt chi tiết",
  Toggle_categories		: "Bật tắt danh mục",
  Delete_current_torrents	: "Xóa torrent hiện tại",
+ Quick_search			: "Quick search",
  Select_all			: "Chọn tất cả",
  Deselect_all			: "Bỏ chọn tất cả",
  showSpeedInTitle		: "Hiển thị tốc độ ở tiêu đề",
+ sidePanelMinWidth		: "Side panel min width",
+ listTableMinHeight		: "List table min height",
  speedGraphDuration		: "Duration of speed graph",
  speedGraphDurationOptions		: {600: "10 min", 1800: "30 min", 3600: "1 hr", 10800: "3 hrs"},
  badTempPath			: "Webserver user doesn't have read/write/execute access to the tmp directory. ruTorrent will not work.",

@@ -140,6 +140,10 @@ var theUILang =
  time_m				: "m ", /*for x minutes remaining*/
  time_s				: "s ", /*for x seconds remaining*/
  Base_directory			: "ডিরেক্টরি",
+ Torrent_options		: "Torrent Options",
+ Return_select_label		: "Select",
+ Add_from_file			: "Add From File",
+ Add_from_URL			: "Add From URL",
  Number_Peers_min		: "Peers এর সর্বনিম্ন সংখ্যা",
  Number_Peers_max		: "Peers এর সর্বোচ্চ সংখ্যা",
  Tracker_Numwant		: "Wished number of peers",
@@ -282,6 +286,8 @@ var theUILang =
  webBadSessionError		: "প্লাগইন কাজ করবে না। ওয়েবসার্ভার ব্যবহারকারীর অবশ্যই rTorrent সেশন ডিরেক্টরিতে এক্সিকিউট এক্সেস থাকতে হবে।",
  webBadSessionWarning		: "কিছু কার্যকারিতা অপ্রাপ্য হবে। ওয়েবসার্ভার ব্যবহারকারীর অবশ্যই rTorrent সেশন ডিরেক্টরিতে এক্সিকিউট এক্সেস থাকতে হবে।",
  Developers			: "ডেভেলপারস",
+ Original_webui			: "Original µTorrent WebUI",
+ rTorrent_adaption		: "rTorrent adaption (ruTorrent)",
  Check_new_version		: "নতুন ভার্সন চেক করুন",
  here				: "এখানে",
  Num_No				: "No.", // This means "Number". To be used as header for number count, e.g.: throttle/ratio plugin
@@ -291,9 +297,12 @@ var theUILang =
  Toggle_details			: "বিবরণ টগল করুন",
  Toggle_categories		: "ক্যাটাগরি টগল করুন",
  Delete_current_torrents	: "বর্তমান টরেন্ট (গুলি) মুছুন",
+ Quick_search			: "Quick search",
  Select_all			: "সব নির্বাচন করুন",
  Deselect_all			: "সব গুলো অনির্বাচিত করুন",
  showSpeedInTitle		: "শিরোনামে স্পিড দেখান",
+ sidePanelMinWidth		: "Side panel min width",
+ listTableMinHeight		: "List table min height",
  speedGraphDuration		: "স্পিড গ্রাফের সময়কাল",
  speedGraphDurationOptions		: {600: "10 min", 1800: "30 min", 3600: "1 hr", 10800: "3 hrs"},
  badTempPath			: "ওয়েবসার্ভার ব্যবহারকারীর tmp ডিরেক্টরিতে রিড/রাইট/এক্সেকিউট করার অ্যাক্সেস নেই। ruTorrent কাজ করবে না।",

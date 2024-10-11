@@ -3,20 +3,16 @@
  *
  */
 
-var theWebUI =
-{
-  	version: "4.3.7",
-	tables:
-	{
-		trt:
-		{
+var theWebUI = {
+	version: "5.0.0",
+	tables: {
+		trt: {
 			obj: new dxSTable(),
-			columns:
-			[
+			columns: [
 				{ text: theUILang.Name, 		width: "200px", id: "name",		type: TYPE_STRING },
-		      		{ text: theUILang.Status, 		width: "100px",	id: "status",		type: TYPE_STRING },
-		   		{ text: theUILang.Size, 		width: "70px",	id: "size", 		type: TYPE_NUMBER },
-	   			{ text: theUILang.Done, 		width: "100px",	id: "done",		type: TYPE_PROGRESS },
+				{ text: theUILang.Status, 		width: "100px",	id: "status",		type: TYPE_STRING },
+				{ text: theUILang.Size, 		width: "70px",	id: "size", 		type: TYPE_NUMBER },
+				{ text: theUILang.Done, 		width: "100px",	id: "done",		type: TYPE_PROGRESS },
 				{ text: theUILang.Downloaded, 		width: "100px",	id: "downloaded",	type: TYPE_NUMBER },
 				{ text: theUILang.Uploaded, 		width: "100px",	id: "uploaded",		type: TYPE_NUMBER },
 				{ text: theUILang.Ratio, 		width: "60px",	id: "ratio",		type: TYPE_NUMBER },
@@ -33,15 +29,13 @@ var theWebUI =
 			],
 			container:	"List",
 			format:		theFormatter.torrents,
-			ondelete:	function() { theWebUI.remove(); },
-  	                onselect:	function(e,id) { theWebUI.trtSelect(e,id) },
-			ondblclick:	function(obj) { theWebUI.showDetails(obj.id); return(false); }
+			ondelete:	function() { theWebUI.removeTorrent(); },
+			onselect:	function(e,id) { theWebUI.trtSelect(e,id) },
+			ondblclick:	function(obj) { theWebUI.showDetails(obj.id); return false; },
 		},
-		fls:
-		{
+		fls: {
 			obj: new dxSTable(),
-			columns:
-			[
+			columns: [
 				{ text: theUILang.Name, 		width: "200px",	id: "name",		type: TYPE_STRING },
 				{ text: theUILang.Size, 		width: "70px", 	id: "size",		type: TYPE_NUMBER,	"align" : ALIGN_RIGHT},
 				{ text: theUILang.Done, 		width: "100px", id: "done",		type: TYPE_NUMBER },
@@ -51,26 +45,21 @@ var theWebUI =
 			container:	"FileList",
 			format:		theFormatter.files,
 			onselect:	function(e,id) { theWebUI.flsSelect(e,id) },
-			ondblclick:	function(obj)
-			{
-				if(!theWebUI.settings["webui.fls.view"] && (theWebUI.dID!=""))
-				{
+			ondblclick:	function(obj) {
+				if (!theWebUI.settings["webui.fls.view"] && (theWebUI.dID!="")) {
 					var lnk = this.getAttr(obj.id, "link");
-		                	if(lnk!=null)
-		                	{
-		                		theWebUI.dirs[theWebUI.dID].setDirectory(lnk);
+					if(lnk!=null) {
+						theWebUI.dirs[theWebUI.dID].setDirectory(lnk);
 						this.clearRows();
-				    		theWebUI.redrawFiles(theWebUI.dID);
+						theWebUI.redrawFiles(theWebUI.dID);
 					}
 				}
-				return(false);
+				return false;
 			}
 		},
-		trk:
-		{
+		trk: {
 			obj: new dxSTable(),
-			columns:
-			[
+			columns: [
 				{ text: theUILang.Name,			width: "200px", id: "name",		type: TYPE_STRING },
 				{ text: theUILang.Type, 		width: "60px", 	id: "type",		type: TYPE_STRING, 	"align" : ALIGN_RIGHT},
 				{ text: theUILang.Enabled, 		width: "60px", 	id: "enabled",		type: TYPE_STRING, 	"align" : ALIGN_RIGHT},
@@ -82,16 +71,13 @@ var theWebUI =
 				{ text: theUILang.trkInterval,		width: "80px", 	id: "interval",		type: TYPE_NUMBER },
 				{ text: theUILang.trkPrivate, 		width: "60px", 	id: "private",		type: TYPE_STRING, 	"align" : ALIGN_RIGHT}
 			],
-
 			container:	"TrackerList",
 			format:		theFormatter.trackers,
 			onselect:	function(e,id) { theWebUI.trkSelect(e,id) }
 		},
-		prs:
-		{
+		prs: {
 			obj: new dxSTable(),
-			columns:
-			[
+			columns: [
 				{ text: theUILang.Address,		width: "100px", id: "name",		type: TYPE_STRING },
 				{ text: theUILang.ClientVersion,	width: "120px", id: "version",		type: TYPE_STRING },
 				{ text: theUILang.Flags, 		width: "60px", 	id: "flags",		type: TYPE_STRING, 	"align" : ALIGN_RIGHT},
@@ -100,25 +86,22 @@ var theWebUI =
 				{ text: theUILang.Uploaded, 		width: "100px", id: "uploaded",		type: TYPE_NUMBER },
 				{ text: theUILang.DL, 			width: "70px", 	id: "dl",		type: TYPE_NUMBER },
 				{ text: theUILang.UL, 			width: "70px", 	id: "ul",		type: TYPE_NUMBER },
-                                { text: theUILang.PeerDL, 		width: "70px", 	id: "peerdl",		type: TYPE_NUMBER },
-                                { text: theUILang.PeerDownloaded, 	width: "100px", id: "peerdownloaded",	type: TYPE_NUMBER }
+				{ text: theUILang.PeerDL, 		width: "70px", 	id: "peerdl",		type: TYPE_NUMBER },
+				{ text: theUILang.PeerDownloaded, 	width: "100px", id: "peerdownloaded",	type: TYPE_NUMBER }
 			],
 			container:	"PeerList",
 			format:		theFormatter.peers,
 			onselect:	function(e,id) { theWebUI.prsSelect(e,id) },
-			ondblclick:	function(obj)
-			{
+			ondblclick:	function(obj) {
 				const queryUrl = theWebUI.getPeerIpQueryUrl(obj.id);
 				if (queryUrl !== '#')
 					window.open(queryUrl, "_blank");
-				return(false);
+				return false;
 			}
 		},
-		plg:
-		{
+		plg: {
 			obj: new dxSTable(),
-			columns:
-			[
+			columns: [
 				{ text: theUILang.plgName,		width: "150px", id: "name",		type: TYPE_STRING },
 				{ text: theUILang.plgVersion,		width: "60px",	id: "version",		type: TYPE_NUMBER },
 				{ text: theUILang.plgStatus, 		width: "80px", 	id: "status",		type: TYPE_STRING, 	"align" : ALIGN_RIGHT},
@@ -128,11 +111,10 @@ var theWebUI =
 			],
 			container:	"PluginList",
 			format:		theFormatter.plugins,
-			onselect:	function(e,id) { theWebUI.plgSelect(e,id) }
+			onselect:	function(e,id) { theWebUI.plgSelect(e,id) },
 		}
 	},
-	settings:
-	{
+	settings: {
 		"webui.fls.view":		0,
 		"webui.show_cats":		1,
 		"webui.show_dets":		1,
@@ -140,6 +122,8 @@ var theWebUI =
 		"webui.reqtimeout":		10000,
 		"webui.confirm_when_deleting":	1,
 		"webui.alternate_color":	0,
+		"webui.side_panel_min_width": 	280,
+		"webui.list_table_min_height": 	300,
 		"webui.update_interval":	2500,
 		"webui.hsplit":			0.88,
 		"webui.vsplit":			0.5,
@@ -190,8 +174,7 @@ var theWebUI =
 		})(),
 	},
 	showFlags: 0,
-	total:
-	{
+	total: {
 		rateDL: 	0,
 		rateUL: 	0,
 		speedDL: 	0,
@@ -199,8 +182,7 @@ var theWebUI =
 		DL: 		0,
 		UL: 		0
 	},
-	stopen:
-	{
+	stopen: {
 		http: 	-1,
 		sock: 	-1,
 		fd: 	-1,
@@ -235,95 +217,104 @@ var theWebUI =
 // init
 //
 
-	init: function()
-	{
-       		log("WebUI started.");
+	init: function() {
+		log("WebUI started.");
 		this.setStatusUpdate();
-		if(browser.isOldIE)
+		if (browser.isOldIE)
 			this.msg(theUILang.Doesnt_support);
-		else
-		{
+		else {
 			this.catchErrors(false);
 			this.getUISettings();
 			this.getPlugins();
 		}
 	},
 
-	assignEvents: function()
-	{
-		window.onresize = theWebUI.resize;
-		window.onorientationchange = theWebUI.resize;
-		$(document).on("dragstart",function(e) { return(false); } );
-		$(document).on("selectstart",function(e) { return(e.fromTextCtrl); });
-		$(document).on("contextmenu",function(e)
-		{
-			if(e.fromTextCtrl)
+	assignEvents: function() {
+		window.addEventListener("resize", () => theWebUI.resize());
+		window.addEventListener("orientationchange", () => theWebUI.resize());
+		$(document).on("dragstart", function(e) { return false; } );
+		$(document).on("selectstart", function(e) { return(e.fromTextCtrl); });
+		$(document).on("contextmenu", function(e) {
+			if (e.fromTextCtrl)
 				theContextMenu.hide();
 			else
-				return(false);
+				return false;
 		});
-		var keyEvent = function (e)
-		{
-			switch(e.which)
-			{
-		   		case 27 : 				// Esc
-		   		{
-		   			if(theContextMenu.hide() || theDialogManager.hideTopmost())
+		const keyEvent = function (e) {
+			switch (e.which) {
+				case 27: // Esc
+				{
+					if (theContextMenu.hide() || theDialogManager.hideTopmost())
 						return(false);
-		   			break;
-		   		}
-		   		case 79 : 				// ^O
-   				{
-					if(e.metaKey && !theDialogManager.isModalState())
-   					{
+					if ($$("query").value === "") {
+						theWebUI.endSearch();
+					} else {
+						theWebUI.clearSearch();
+					}
+					break;
+				}
+				case 79: // ^O
+   			{
+					if (e.metaKey && !theDialogManager.isModalState()) {
 						theWebUI.showAdd();
-						return(false);
-      					}
-		   			break;
+						return false;
+					}
+		   		break;
 				}
-				case 80 :                               // ^P
+				case 80: // ^P
 				{
-					if(e.metaKey && !theDialogManager.isModalState())
-					{
+					if (e.metaKey && !theDialogManager.isModalState()) {
 						theWebUI.showSettings();
-						return(false);
-      					}
-		   			break;
-				}
-		  		case 112:				// F1
-   				{
-   				        if((!browser.isOpera || !e.fromTextCtrl) && !theDialogManager.isModalState())
-   				        {
-			   		        theDialogManager.show(e.metaKey ? "dlgAbout" : "dlgHelp");
-						return(false);
+						return false;
 					}
-		   		}
-				case 115 : 				// F4
+					break;
+				}
+				case 70: // ^F
 				{
-					if(!browser.isOpera || !e.fromTextCtrl)
-					{
+					if (e.metaKey && !theDialogManager.isModalState()) {
+						theWebUI.startSearch(e);
+					}
+					break;
+				}
+				case 112: // F1
+				{
+					if ((!browser.isOpera || !e.fromTextCtrl) && !theDialogManager.isModalState()) {
+						theDialogManager.show(e.metaKey ? "dlgAbout" : "dlgHelp");
+						return false;
+					}
+					break;
+				}
+				case 115: // F4
+				{
+					if (!browser.isOpera || !e.fromTextCtrl) {
 						theWebUI.toggleMenu();
-						return(false);
+						return false;
 					}
+					break;
 				}
-				case 117 :                      	// F6
+				case 117: // F6
 				{
-				        if(!browser.isOpera || !e.fromTextCtrl)
-				        {
+					if (!browser.isOpera || !e.fromTextCtrl) {
 						theWebUI.toggleDetails();
-						return(false);
+						return false;
 					}
+					break;
 				}
-				case 118 :                      	// F7
+				case 118: // F7
 				{
-				        if(!browser.isOpera || !e.fromTextCtrl)
-				        {
+					if (!browser.isOpera || !e.fromTextCtrl) {
 						theWebUI.toggleCategories();
 						return(false);
 					}
+					break;
 				}
 			}
 		};
+		$("#query").on("keydown", (e) => {
+			if (e.keyCode === 13) {
+				theSearchEngines.run()
+			}
+		});
 
 		$(document).on( browser.isOpera ? 'keypress' : 'keydown', keyEvent);
 	},
@@ -343,16 +334,9 @@ var theWebUI =
 		this.requestWithoutTimeout("?action=getuisettings", [this.initSettings, this], true);
 	},
 
-	loadPlugins: function()
-	{
-		if(thePlugins.isInstalled("_getdir"))
-		{
-			$('#dir_edit').after($("<input type=button>").addClass("Button").attr("id","dir_btn").on('focus', function() { this.blur(); } ));
-			var btn = new this.rDirBrowser( 'tadd', 'dir_edit', 'dir_btn' );
-			theDialogManager.setHandler('tadd','afterHide',function()
-			{
-				btn.hide();
-			});
+	loadPlugins: function() {
+		if (thePlugins.isInstalled("_getdir")) {
+			new this.rDirBrowser("dir_edit");
 		}
 		correctContent();
 		this.updateServerTime();
@@ -385,14 +369,11 @@ var theWebUI =
 			this.speedGraph.create(speedTab);
 	},
 
-	config: function()
-	{
-		$.each(this.tables, function(ndx,table)
-		{
-		        var width = theWebUI.settings["webui."+ndx+".colwidth"];
-		        var enabled = theWebUI.settings["webui."+ndx+".colenabled"];
-			$.each(table.columns, function(i,col)
-			{
+	config: function() {
+		$.each(this.tables, function(key, table) {
+			var width = theWebUI.settings["webui." + key + ".colwidth"];
+			var enabled = theWebUI.settings["webui." + key + ".colenabled"];
+			$.each(table.columns, function(i,col) {
 				if(width && i<width.length && width[i]>4)
 					col.width = width[i];
 				if(enabled && i<enabled.length)
@@ -407,23 +388,24 @@ var theWebUI =
 			table.obj.colorEvenRows = theWebUI.settings["webui.alternate_color"];
 			table.obj.maxRows = iv(theWebUI.settings["webui.fullrows"]);
 			table.obj.noDelayingDraw = iv(theWebUI.settings["webui.no_delaying_draw"]);
-			if($type(theWebUI.settings["webui."+ndx+".sindex"]))
-				table.obj.sortId = theWebUI.settings["webui."+ndx+".sindex"];
-			if($type(theWebUI.settings["webui."+ndx+".rev"]))
-				table.obj.reverse = iv(theWebUI.settings["webui."+ndx+".rev"]);
-			if($type(theWebUI.settings["webui."+ndx+".sindex2"]))
-				table.obj.sortId2 = theWebUI.settings["webui."+ndx+".sindex2"];
-			if($type(theWebUI.settings["webui."+ndx+".rev2"]))
-				table.obj.secRev = iv(theWebUI.settings["webui."+ndx+".rev2"]);
-			if($type(theWebUI.settings["webui."+ndx+".colorder"]))
-				table.obj.colOrder = theWebUI.settings["webui."+ndx+".colorder"];
-			table.obj.onsort = function()
-			{
-				if( (this.sortId != theWebUI.settings["webui."+this.prefix+".sindex"]) ||
+			if($type(theWebUI.settings["webui." + key + ".sindex"]))
+				table.obj.sortId = theWebUI.settings["webui." + key + ".sindex"];
+			if($type(theWebUI.settings["webui." + key + ".rev"]))
+				table.obj.reverse = iv(theWebUI.settings["webui." + key + ".rev"]);
+			if($type(theWebUI.settings["webui." + key + ".sindex2"]))
+				table.obj.sortId2 = theWebUI.settings["webui." + key + ".sindex2"];
+			if($type(theWebUI.settings["webui." + key + ".rev2"]))
+				table.obj.secRev = iv(theWebUI.settings["webui." + key + ".rev2"]);
+			if($type(theWebUI.settings["webui." + key + ".colorder"]))
+				table.obj.colOrder = theWebUI.settings["webui." + key + ".colorder"];
+			table.obj.onsort = () => {
+				if (
+					(this.sortId != theWebUI.settings["webui."+this.prefix+".sindex"]) ||
 					(this.reverse != theWebUI.settings["webui."+this.prefix+".rev"]) ||
 					(this.sortId2 != theWebUI.settings["webui."+this.prefix+".sindex2"]) ||
-					(this.secRev != theWebUI.settings["webui."+this.prefix+".rev2"]))
-						theWebUI.save();
+					(this.secRev != theWebUI.settings["webui."+this.prefix+".rev2"])
+				)
+					theWebUI.save();
 			}
 		});
 		var table = this.getTable("fls");
@@ -455,19 +437,20 @@ var theWebUI =
 		theTabs.show(tab);
 		this.activeView = tab;
 
-		if(!this.settings["webui.show_cats"])
-			$("#CatList").hide();
-		if(!this.settings["webui.show_dets"])
-		{
-			$("#tdetails").hide();
-			if(!theWebUI.systemInfo.rTorrent.started)
-				this.toggleDetails();
+		if (!this.settings["webui.show_cats"]) {
+			$("#side-panel").addClass("d-none");
+			$("#HDivider").addClass("d-none");
+		}
+		if (!this.settings["webui.show_dets"] || !theWebUI.systemInfo.rTorrent.started) {
+			$("#tdetails").addClass("d-none");
+			$("#tdetails").removeClass("d-flex");
+			$("#VDivider").addClass("d-none")
 		}
 		theDialogManager.setEffects( iv(this.settings["webui.effects"])*200 );
 //		this.setStatusUpdate();
-		$.each(this.tables, function(ndx,table)
+		$.each(this.tables, function(key,table)
 		{
-			table.obj.create($$(table.container), table.columns, ndx);
+			table.obj.create($$(table.container), table.columns, key);
 			// legacy support of numeric sortId, sortId2
 			for(const name of ['sortId', 'sortId2']) {
 				const col = Number.parseInt(table.obj[name]);
@@ -479,7 +462,7 @@ var theWebUI =
 		table = this.getTable("plg");
 		if(table)
 		{
-			$.each( thePlugins.list, function(ndx,plugin)
+			$.each( thePlugins.list, function(key,plugin)
 			{
 				table.addRowById(
 				{
@@ -498,14 +481,9 @@ var theWebUI =
 		theWebUI.categoryList.config(this.settings);
 		// Setup quick search
 		const searchField = $$("query");
-		const updateQuickSearch = () => {
-			this.categoryList.setQuickSearch(
-				theSearchEngines.current === -1 ? searchField.value : null
-			);
-		};
-		searchField.addEventListener("focus", () => updateQuickSearch());
-		searchField.addEventListener("input", () => updateQuickSearch());
-		updateQuickSearch();
+		searchField.addEventListener("focus", theWebUI.updateQuickSearch);
+		searchField.addEventListener("input", theWebUI.updateQuickSearch);
+		theWebUI.updateQuickSearch();
 
 		// user must be able add peer when peers are empty
 		$("#PeerList .stable-body").mouseclick(function(e)
@@ -640,7 +618,7 @@ var theWebUI =
         plgRefresh : function()
         {
         	table = this.getTable("plg");
-		$.each( thePlugins.list, function(ndx,plugin)
+		$.each( thePlugins.list, function(key,plugin)
 		{
 			table.setValueById( "_plg_"+plugin.name, "status", plugin.enabled ? 1 : 0 );
 			table.setValueById( "_plg_"+plugin.name, "launch", plugin.launched ? (plugin.canBeLaunched() ? 1 : 2) : 0 );
@@ -716,23 +694,19 @@ var theWebUI =
 			theSearchEngines.set(this.settings["webui.search"],true);
    	},
 
-	setSettings: function()
-	{
-	        var req = '';
-	        var needSave = false;
+	setSettings: function() {
+		var req = '';
+		var needSave = false;
 		var needResize = false;
 		let needCatListSync = false;
 		var reply = null;
-		$.each(this.settings, function(i,v)
-		{
-		        var o = $$(i);
-			if(o)
-			{
+		$.each(this.settings, function(i,v) {
+			var o = $$(i);
+			if (o) {
 				o = $(o);
 				var nv = o.is("input:checkbox") ? (o.prop('checked') ? 1 : 0) : o.val();
-				switch(i)
-				{
-				        case "max_memory_usage":
+				switch(i) {
+					case "max_memory_usage":
 						nv *= 1024;
 					case "upload_rate":
 					case "download_rate":
@@ -753,7 +727,7 @@ var theWebUI =
 							}
 							case "webui.alternate_color":
 							{
-								$.each(theWebUI.tables, function(ndx,table)
+								$.each(theWebUI.tables, function(key,table)
 								{
 							  		table.obj.colorEvenRows = nv;
 						     			table.obj.refreshSelection();
@@ -762,7 +736,7 @@ var theWebUI =
 							}
 							case "webui.show_cats":
 							{
-								$("#CatList").toggle();
+								$("#side-panel").toggle();
 								needResize = true;
 								break;
 							}
@@ -785,7 +759,7 @@ var theWebUI =
 							}
 							case "webui.fullrows":
 							{
-								$.each(theWebUI.tables, function(ndx,table)
+								$.each(theWebUI.tables, function(key,table)
 								{
 						      			table.obj.maxRows = iv(nv);
 						      			table.obj.refreshRows();
@@ -794,7 +768,7 @@ var theWebUI =
 							}
 							case "webui.no_delaying_draw":
 							{
-								$.each(theWebUI.tables, function(ndx,table)
+								$.each(theWebUI.tables, function(key,table)
 								{
 						      			table.obj.noDelayingDraw = iv(nv);
 								});
@@ -842,10 +816,10 @@ var theWebUI =
 		if(needResize)
 			this.resize();
 		if((req.length>0) && theWebUI.systemInfo.rTorrent.started)
-	      		this.request("?action=setsettings" + req,null,true);
+			this.request("?action=setsettings" + req,null,true);
 		if(needSave)
 			this.save(reply);
-   	},
+	},
 
    	reload: function()
    	{
@@ -876,7 +850,7 @@ var theWebUI =
 	{
 	        if(!theWebUI.configured)
 			return;
-	        $.each(theWebUI.tables, function(ndx,table)
+	        $.each(theWebUI.tables, function(key,table)
 		{
 	   		var width = [];
 	   		var enabled = [];
@@ -885,13 +859,13 @@ var theWebUI =
       				width.push( table.obj.getColWidth(i) );
 	      			enabled.push( table.obj.isColumnEnabled(i) );
 			}
-			theWebUI.settings["webui."+ndx+".colwidth"] = width;
-			theWebUI.settings["webui."+ndx+".colenabled"] = enabled;
-			theWebUI.settings["webui."+ndx+".colorder"] = table.obj.colOrder;
-			theWebUI.settings["webui."+ndx+".sindex"] = table.obj.sortId;
-			theWebUI.settings["webui."+ndx+".rev"] = table.obj.reverse;
-			theWebUI.settings["webui."+ndx+".sindex2"] = table.obj.sortId2;
-			theWebUI.settings["webui."+ndx+".rev2"] = table.obj.secRev;
+			theWebUI.settings["webui."+key+".colwidth"] = width;
+			theWebUI.settings["webui."+key+".colenabled"] = enabled;
+			theWebUI.settings["webui."+key+".colorder"] = table.obj.colOrder;
+			theWebUI.settings["webui."+key+".sindex"] = table.obj.sortId;
+			theWebUI.settings["webui."+key+".rev"] = table.obj.reverse;
+			theWebUI.settings["webui."+key+".sindex2"] = table.obj.sortId2;
+			theWebUI.settings["webui."+key+".rev2"] = table.obj.secRev;
 		});
 
 		theWebUI.settings['webui.selected_tab.last'] = theWebUI.activeView;
@@ -1398,7 +1372,7 @@ var theWebUI =
 		this.getTable("trt").clearSelection();
 	},
 
-   	createMenu: function(e, id)
+	createMenu: function(e, id)
 	{
    		var table = this.getTable("trt");
    		theContextMenu.clear();
@@ -1448,15 +1422,12 @@ var theWebUI =
    		theContextMenu.add([CMENU_CHILD, theUILang.Labels, _bf]);
    		theContextMenu.add([CMENU_SEP]);
    		var _c0 = [];
-		if(table.selCount > 1)
-		{
+		if (table.selCount > 1) {
 			_c0.push([theUILang.High_priority, "theWebUI.perform('dsetprio&v=3')"]);
 			_c0.push([theUILang.Normal_priority, "theWebUI.perform('dsetprio&v=2')"]);
 			_c0.push([theUILang.Low_priority,  "theWebUI.perform('dsetprio&v=1')"]);
 			_c0.push([theUILang.Dont_download,  "theWebUI.perform('dsetprio&v=0')"]);
-		}
-		else
-		{
+		} else {
 			var p = this.torrents[id].priority;
 			_c0.push([theUILang.High_priority, (p==3) || !this.isTorrentCommandEnabled("dsetprio",id) ? null : "theWebUI.perform('dsetprio&v=3')"]);
 			_c0.push([theUILang.Normal_priority, (p==2 || !this.isTorrentCommandEnabled("dsetprio",id)) ? null : "theWebUI.perform('dsetprio&v=2')"]);
@@ -1464,87 +1435,84 @@ var theWebUI =
 			_c0.push([theUILang.Dont_download, (p==0) || !this.isTorrentCommandEnabled("dsetprio",id) ? null : "theWebUI.perform('dsetprio&v=0')"]);
 		}
 		theContextMenu.add([CMENU_CHILD, theUILang.Priority, _c0]);
-   		theContextMenu.add([CMENU_SEP]);
-   		theContextMenu.add([theUILang.Remove, (table.selCount > 1) || this.isTorrentCommandEnabled("remove",id) ? "theWebUI.remove()" : null]);
-   		theContextMenu.add([CMENU_SEP]);
-   		theContextMenu.add([theUILang.Details, "theWebUI.showDetails('" + id + "')"]);
-   		if((table.selCount > 1) || !this.isTorrentCommandEnabled("setprops",id))
-      			theContextMenu.add([theUILang.Properties]);
-   		else
-      			theContextMenu.add([theUILang.Properties, "theWebUI.showProperties('" + id + "')"]);
+		theContextMenu.add([CMENU_SEP]);
+		theContextMenu.add([
+			theUILang.Remove,
+			(table.selCount > 1) || this.isTorrentCommandEnabled("remove", id)
+				? () => theWebUI.removeTorrent()
+				: null,
+		]);
+		theContextMenu.add([CMENU_SEP]);
+		theContextMenu.add([theUILang.Details, "theWebUI.showDetails('" + id + "')"]);
+		if ((table.selCount > 1) || !this.isTorrentCommandEnabled("setprops",id))
+			theContextMenu.add([theUILang.Properties]);
+		else
+			theContextMenu.add([theUILang.Properties, "theWebUI.showProperties('" + id + "')"]);
 	},
 
-   	perform: function(cmd)
-	{
-		if(cmd == "pause")
-		{
+	/**
+	 * Perform a command on the backend.
+	 * @param {string} cmd Command to be performed.
+	 */
+	perform: function(cmd) {
+		if (cmd === "pause") {
 			var hp = this.getHashes("unpause");
-			if(hp != "")
+			if (hp != "")
 				this.request("?action=unpause" + hp);
 		}
 		var h = this.getHashes(cmd);
-		if(h != "")
-		{
-			if((cmd.indexOf("remove")==0) && (h.indexOf(this.dID) >- 1))
-			{
+		if (h !== "") {
+			if ((cmd.indexOf("remove") === 0) && (h.indexOf(this.dID) > -1)) {
 				this.dID = "";
 				this.clearDetails();
 			}
 			this.getTorrents(cmd + h + "&list=1");
 		}
-   	},
-
-	/**
-	 * @param {string} act
-	 * @param {string} hash
-	 * @returns {boolean}
-	 */
-	isTorrentCommandEnabled: function(act,hash)
-	{
-		var ret = true;
-   		var status = this.torrents[hash].state;
-		switch(act)
-		{
-			case "start" :
-			{
-				ret = (!(status & dStatus.started) || (status & dStatus.paused) && !(status & dStatus.checking) && !(status & dStatus.hashing));
-				break;
-			}
-			case "pause" :
-			{
-				ret = ((status & dStatus.started) && !(status & dStatus.paused) && !(status & dStatus.checking) && !(status & dStatus.hashing));
-				break;
-			}
-			case "unpause" :
-			{
-				ret = ((status & dStatus.paused) && !(status & dStatus.checking) && !(status & dStatus.hashing));
-				break;
-			}
-			case "stop" :
-			{
-				ret = ((status & dStatus.started) || (status & dStatus.hashing) || (status & dStatus.checking));
-				break;
-			}
-			case "recheck" :
-			{
-				ret = !(status & dStatus.checking) && !(status & dStatus.hashing);
-				break;
-			}
-		}
-		return(ret);
 	},
 
-	getHashes: function(act)
-	{
-		var h = "";
-		var pos = act.indexOf('&');
-		if(pos>=0)
-			act = act.substring(0,pos);
-		var sr = this.getTable("trt").rowSel;
-		for(var k in sr)
-			if((sr[k] == true) && this.isTorrentCommandEnabled(act,k))
-				h += "&hash=" + k;
-		return(h);
+	/**
+	 * Check if an action is enabled to be performed on 
+	 * a torrent specified by the torrent's hash.
+	 * @param {string} act Action to be checked.
+	 * @param {string} hash Hash of the torrent to be checked.
+	 * @returns {boolean}
+	 */
+	isTorrentCommandEnabled: function(act, hash) {
+		const status = this.torrents[hash].state;
+		switch (act) {
+			case "start": {
+				return (!(status & dStatus.started) || (status & dStatus.paused) && !(status & dStatus.checking) && !(status & dStatus.hashing));
+			}
+			case "pause": {
+				return ((status & dStatus.started) && !(status & dStatus.paused) && !(status & dStatus.checking) && !(status & dStatus.hashing));
+			}
+			case "unpause": {
+				return ((status & dStatus.paused) && !(status & dStatus.checking) && !(status & dStatus.hashing));
+			}
+			case "stop": {
+				return ((status & dStatus.started) || (status & dStatus.hashing) || (status & dStatus.checking));
+			}
+			case "recheck": {
+				return !(status & dStatus.checking) && !(status & dStatus.hashing);
+			}
+			default: {
+				return true;
+			}
+		}
+	},
+
+	/**
+	 * 
+	 * @param {string} act 
+	 * @returns {string} Query string of hashes of selected torrents.
+	 */
+	getHashes: function(act) {
+		const pos = act.indexOf('&');
+		if (pos >= 0)
+			act = act.substring(0, pos);
+		return Object.entries(this.getTable("trt").rowSel)
+			.filter(([hash, isSelected]) => (isSelected && this.isTorrentCommandEnabled(act, hash)))
+			.reduce((acc, curr) => (acc + "&hash=" + curr[0]), "");
 	},
 
 	start: function()
@@ -1567,31 +1535,35 @@ var theWebUI =
    		this.perform("updateTracker");
    	},
 
-	remove: function()
-	{		
+	/**
+	 * Remove selected torrent(s), **without** confirmation.
+	 */
+	remove: function() {		
 		this.perform("remove");
 	},
 
-	removeTorrent: function()
-	{
-		var table = this.getTable("trt");
-		if((table.selCount>1) ||
-			((table.selCount==1) &&	this.isTorrentCommandEnabled("remove",table.getFirstSelected())))
-		{
-			if(this.settings["webui.confirm_when_deleting"])
-			{
-				this.delmode = "remove";
-				askYesNo( theUILang.Remove_torrents, theUILang.Rem_torrents_prompt, "theWebUI.doRemove()" );
-	      	}
-			else
+	/**
+	 * Remove selected torrent(s). Will confirm before taking action
+	 * if the option is enabled in the settings.
+	 */
+	removeTorrent: function() {
+		const table = this.getTable("trt");
+		if ((table.selCount > 1) ||
+			((table.selCount === 1) && this.isTorrentCommandEnabled("remove", table.getFirstSelected()))) {
+			if (this.settings["webui.confirm_when_deleting"]) {
+				askYesNo(
+					theUILang.Remove_torrents,
+					theUILang.Rem_torrents_prompt,
+					() => this.perform("remove"),
+				);
+			} else
 				this.perform("remove");
 		}
 	},
 
-	doRemove: function()
-	{
+	doRemove: function() {
 		this.perform(this.delmode);
-   	},
+	},
 
 	recheck: function()
 	{
@@ -2253,72 +2225,65 @@ var theWebUI =
 		return(false);
 	},
 
-	resizeLeft: function( w, h )
-	{
-	        if(w!==null)
-	        {
-			$("#CatList").width( w );
-			$("#VDivider").width( $(window).width()-w-10 );
+	resizeLeft: function(w) {
+		if (!w)
+			return;
+		const offcanvas = $("#offcanvas-sidepanel");
+		if (theWebUI.settings["webui.list_table_min_height"]) {
+			w = Math.max(w, parseFloat(theWebUI.settings["webui.side_panel_min_width"]));
 		}
-		if(h!==null)
-		{
-			$("#CatList").height( h );
+		if (offcanvas.css("display") === "none") {
+			// Senerio 1: when side panel is toggled off
+			$("#HDivider").addClass("d-md-none").removeClass("d-md-block");
+			$("#main-info").width($("#maincont").width());
+		} else {
+			// When side panel is toggled on
+			if ($(window).width() < 768) {
+				// Senerio 2: small screens and below
+				offcanvas.width("");
+				$("#main-info").width($("#maincont").width());
+			} else {
+				// Senerio 3: medium screens and above
+				offcanvas.width(w);
+				$("#main-info").width($("#maincont").width() - 5 - w);
+			}
 		}
+		this.resizeGraph();
 	},
 
-	resizeTop : function( w, h )
-	{
-		this.getTable("trt").resize(w,h);
+	resizeTop: function(w, h) {
+		if (!h)
+			return
+		if (theWebUI.settings["webui.list_table_min_height"]) {
+			h = Math.max(h, parseFloat(theWebUI.settings["webui.list_table_min_height"]));
+		}
+		if ($("#tdetails").css("display") !== "none") {
+			$("#list-table").height(h);
+			$("#tdetails").height($("#main-info").height() - 5 - h);
+		} else {
+			$("#list-table").height($("#main-info").height());
+		}
+		this.resizeGraph();
 	},
 
-	resizeBottom : function( w, h )
-	{
-        	if(w!==null)
-        	{
-			$("#tdetails").width( w );
-			w-=8;
-		}
-		if(h!==null)
-        	{
-			$("#tdetails").height( h );
-			h-=($("#tabbar").outerHeight());
-			$("#tdcont").height( h );
-			h-=2;
-        	}
-        	if(theWebUI.configured)
-        	{
-	        	this.getTable("fls").resize(w,h);
-			this.getTable("trk").resize(w,h);
-			this.getTable("prs").resize(w,h);
-			var table = this.getTable("plg");
-			if(table)
-				table.resize(w,h);
-			this.speedGraph.resize(w,h);
-		}
+	resizeGraph: function() {
+		// Resize graphs in #tdetails
+		const tdcont = $("#tdcont");
+		this.speedGraph.resize(tdcont.width(), tdcont.height());
 	},
 
-	resize: function()
-	{
-		var ww = $(window).width();
-		var wh = $(window).height();
-       		var w = Math.floor(ww * (1 - theWebUI.settings["webui.hsplit"])) - 5;
-	        var th = ($("#t").is(":visible") ? $("#t").height() : -1)+$("#StatusBar").height()+12;
-		$("#StatusBar").width(ww);
-		if(theWebUI.settings["webui.show_cats"])
-		{
-			theWebUI.resizeLeft( w, wh-th );
-			w = ww - w;
+	resize: function() {
+		if ($("#t").css("display") === "none") {
+			$("#maincont").height($(window).height() - 30); // 25px for #StatusBar, 5px for margin top
+		} else {
+			$("#maincont").css({height:""});
 		}
-		else
-		{
-			$("#VDivider").width( ww-10 );
-			w = ww;
-		}
-		w-=11;
-		theWebUI.resizeTop( w, Math.floor(wh * (theWebUI.settings["webui.show_dets"] ? theWebUI.settings["webui.vsplit"] : 1))-th-7 );
-		if(theWebUI.settings["webui.show_dets"])
-			theWebUI.resizeBottom( w, Math.floor(wh * (1 - theWebUI.settings["webui.vsplit"])) );
-		$("#HDivider").height( wh-th+2 );
+		const w = $("#maincont").width() * (1 - theWebUI.settings["webui.hsplit"]) - 5;
+		theWebUI.resizeLeft(w);
+		const h = $("#maincont").height() * theWebUI.settings["webui.vsplit"];
+		theWebUI.resizeTop(null, h);
+		// center any open dialog
+		theDialogManager.visible.forEach(id => theDialogManager.center(id));
 	},
 
 	update: function()
@@ -2329,55 +2294,77 @@ var theWebUI =
 			theWebUI.show();
    	},
 
-	setVSplitter : function()
-	{
-		var r = 1 - ($("#tdetails").height() / $(window).height());
-		r = Math.floor(r * Math.pow(10, 3)) / Math.pow(10, 3);
-		if((theWebUI.settings["webui.vsplit"] != r) && (r>0) && (r<1))
-		{
+	setVSplitter: function() {
+		let r = 1 - $("#tdetails").outerHeight() / $("#maincont").height();
+		r = Math.floor(r * 1000) / 1000;
+		if ((theWebUI.settings["webui.vsplit"] !== r) && (r > 0) && (r < 1)) {
 			theWebUI.settings["webui.vsplit"] = r;
-			theWebUI.save();
+			this.save();
 		}
 	},
 
-	setHSplitter : function()
-	{
-		var r = 1 - ($("#CatList").width()+5)/$(window).width();
-		r = Math.floor(r * Math.pow(10, 3)) / Math.pow(10, 3);
-		if((theWebUI.settings["webui.hsplit"] != r) && (r>0) && (r<1))
-		{
+	setHSplitter: function() {
+		let r = 1 - $("#side-panel").outerWidth() / $("#maincont").width();
+		r = Math.floor(r * 1000) / 1000;
+		if ((theWebUI.settings["webui.hsplit"] !== r) && (r > 0) && (r < 1)) {
 			theWebUI.settings["webui.hsplit"] = r;
-			theWebUI.resize();
-			theWebUI.save();
+			this.save();
 		}
 	},
 
-	toggleMenu: function()
-	{
+	toggleMenu: function() {
 		$("#t").toggle();
-  		theWebUI.resize();
+		this.resize();
 	},
 
-	toggleDetails: function()
-	{
-		theWebUI.settings["webui.show_dets"] = !theWebUI.settings["webui.show_dets"];
-		$("#tdetails").toggle();
-      		theWebUI.resize();
-		theWebUI.save();
+	toggleDetails: function() {
+		this.settings["webui.show_dets"] = !this.settings["webui.show_dets"];
+		$("#tdetails").toggleClass("d-flex d-none");
+		$("#VDivider").toggleClass("d-none");
+		this.resize();
+		this.save();
 	},
 
-	toggleCategories: function()
-	{
-	        theWebUI.settings["webui.show_cats"] = !theWebUI.settings["webui.show_cats"];
-		$("#CatList").toggle();
-      		theWebUI.resize();
-		theWebUI.save();
+	toggleCategories: function() {
+		if ($(window).width() < 768) {
+			// do nothing on mobile displays
+			return;
+		}
+		this.settings["webui.show_cats"] = !this.settings["webui.show_cats"];
+		$("#offcanvas-sidepanel").toggleClass("d-md-none");
+		$("#HDivider").toggleClass("d-md-none d-md-block");
+    this.resize();
+		this.save();
 	},
 
 	showAdd: function()
 	{
    		theDialogManager.toggle("tadd");
    	},
+
+	startSearch: function(e)
+	{
+	e.preventDefault();
+	$$("query").focus();
+	},
+
+	clearSearch: function()
+	{
+		$$("query").value = "";
+		theWebUI.updateQuickSearch();
+	},
+
+	endSearch: function()
+	{
+		$$("query").blur();
+	},
+
+	updateQuickSearch: function()
+	{
+		theWebUI.categoryList.setQuickSearch(
+			theSearchEngines.current === -1 ? $$("query").value : null
+		);
+	},
 
 	resetInterval: function()
 	{
@@ -2401,28 +2388,24 @@ var theWebUI =
 		this.updTimer = window.setTimeout(this.update, this.interval);
    	},
 
-   	setActiveView: function(id)
-	{
+	setActiveView: function(id) {
 		$("#tooltip").remove();
-		this.activeView=id;
+		this.activeView = id;
 		if (this.settings['webui.selected_tab.keep'])
 			this.save();
 	},
 
-	request: function(qs, onComplite, isASync)
-	{
+	request: function(qs, onComplite, isASync) {
 		this.requestWithTimeout(qs, onComplite, this.timeout, this.error, isASync);
 	},
 
-	requestWithTimeout: function(qs, onComplite, onTimeout, onError, isASync)
-	{
+	requestWithTimeout: function(qs, onComplite, onTimeout, onError, isASync) {
 		Ajax(this.url + qs, isASync, onComplite, onTimeout, onError, this.settings["webui.reqtimeout"]);
-   	},
+	},
 
-	requestWithoutTimeout: function(qs, onComplite, isASync)
-	{
+	requestWithoutTimeout: function(qs, onComplite, isASync) {
 		Ajax(this.url + qs, isASync, onComplite, null, this.error, -1);
-   	},
+	},
 
 	show: function()
 	{

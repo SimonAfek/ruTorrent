@@ -138,6 +138,10 @@ var theUILang =
  time_m				: "λ. ", /*for x minutes remaining*/
  time_s				: "δευτ. ", /*for x seconds remaining*/
  Base_directory			: "Φάκελος",
+ Torrent_options		: "Torrent Options",
+ Return_select_label		: "Select",
+ Add_from_file			: "Add From File",
+ Add_from_URL			: "Add From URL",
  Number_Peers_min		: "Ελάχιστος αριθμός χρηστών",
  Number_Peers_max		: "Μέγιστος αριθμός χρηστών",
  Tracker_Numwant		: "Ζητούμενος αριθμός χρηστών",
@@ -280,6 +284,8 @@ var theUILang =
  webBadSessionError		: "Το πρόσθετο δεν θα λειτουργήσει. Ο χρήστης του διακομιστή Web πρέπει να έχει δικαιώματα εκτέλεσης στον φάκελο session του rtorrent",
  webBadSessionWarning		: "Ορισμένες λειτουργίες δεν θα είναι διαθέσιμες. Ο χρήστης του διακομιστή Web πρέπει να έχει δικαιώματα εκτέλεσης στον φάκελο session του rtorrent",
  Developers			: "Ανάπτυξη λογισμικού",
+ Original_webui			: "Original µTorrent WebUI",
+ rTorrent_adaption		: "rTorrent adaption (ruTorrent)",
  Check_new_version		: "Έλεγχος για νέα έκδοση",
  here				: "εδώ",
  Num_No				: "Α/Α", // This means "Number". To be used as header for number count, e.g.: throttle/ratio plugin
@@ -289,9 +295,12 @@ var theUILang =
  Toggle_details			: "Εμφάνιση/Απόκρυψη λεπτομερειών",
  Toggle_categories		: "Εμφάνιση/Απόκρυψη κατηγοριών",
  Delete_current_torrents	: "Διαγραφή υπάρχοντων torrent",
+ Quick_search			: "Quick search",
  Select_all			: "Επιλογή όλων",
  Deselect_all			: "Αποεπιλογή όλων",
  showSpeedInTitle		: "Προβολή ταχύτητας στον τίτλο",
+ sidePanelMinWidth		: "Side panel min width",
+ listTableMinHeight		: "List table min height",
  speedGraphDuration		: "Διάρκεια γραφήματος ταχύτητας",
  speedGraphDurationOptions		: {600: "10 λεπτά", 1800: "30 λεπτά", 3600: "1 ώρα", 10800: "3 ώρες"},
  badTempPath			: "Ο χρήστης του διακομιστή Web δεν έχει δικαιώματα για ανάγνωση/εγγραφή/εκτέλεση στο φάκελο tmp. Το ruTorrent δεν θα λειτουργήσει.",

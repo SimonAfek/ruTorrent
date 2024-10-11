@@ -10,11 +10,12 @@ html, body { background-color: #1e2124; color: #BDDBDB }
   --menu-highlight-background-color: #BDDBDB;
 
   --settings-background-color: #272E36;
+
+  --btn-bg-color: #D7D7D7;
 }
 button, input.Button {
   color: black;
   background-image: url(./images/h.gif);
-  background-color: #D7D7D7;
   border-color: #333;
 }
 button:hover, input.Button:not([disabled]):hover {
@@ -70,8 +71,16 @@ div.graph_tab {background-color: #272E36; color: #BDDBDB; font-weight: bold;}
 .graph_tab_tooltip { color: #FFF; background-color: #272E36; border: 1px solid #BDDBDB; }
 
 div#t {background: #252525 url(./images/t_bg.png) repeat-x center center; border-bottom: 1px solid #252525;}
-div#t a:hover {background: transparent url(./images/tb_bg.gif) no-repeat scroll center center}
-
+#top-menu {
+  background-color: #252525;
+  border-bottom: 1px solid #252525;
+}
+div#t .nav-link {
+  background-color: #1E2124;
+  border-color: #D0D0D0;
+  color: #00FF00;
+  font-weight: bold;
+}
 div#t div#add {background: transparent url(./images/toolbar.png) no-repeat -24px center}
 div#t div#create {background: transparent url(./images/toolbar.png) no-repeat -48px center}
 div#t div#remove {background: transparent url(./images/toolbar.png) no-repeat -72px center}
@@ -86,9 +95,9 @@ div#t div#setting {background: transparent url(./images/toolbar.png) no-repeat -
 div#t div#help {background: transparent url(./images/quest.gif) no-repeat 0px center}
 div#t div#go {background: transparent url(./images/go.gif) no-repeat 0px center; }
 
-category-list#CatList { background-color: #272E36; color: #BDDBDB;}
-div#CatList ul li { border: 1px solid #272E36; font-weight: bold; }
-div#CatList ul li.sel {background-color: #BDDBDB; border-color: #BDDBDB; color: #272E36;}
+#offcanvas-sidepanel { background-color: #272E36; color: #BDDBDB;}
+div#side-panel ul li { border: 1px solid #272E36; font-weight: bold; }
+div#side-panel ul li.sel {background-color: #BDDBDB; border-color: #BDDBDB; color: #272E36;}
 
 .stable-icon {background-image: url(./images/tstatus.png); }
 
@@ -96,9 +105,15 @@ div#stg { background-color: #1E2124; color: #BDDBDB; border: 2px solid #909090; 
 div#stg-header { background: #1e2124 url(./images/settings.gif) no-repeat scroll 4px center; color: #00ff00;}
 div#stg .lm { background-color: #272E36; border: 1px solid #D0D0D0; }
 
-.lm li { background: transparent url(./images/bul.gif) no-repeat scroll left center}
-.lm li.first {background: transparent url(./images/bul_f.gif) no-repeat scroll left bottom}
-.lm li.last {background: transparent url(./images/bul_l.gif) no-repeat scroll left top}
+.lm li div > div {
+  border-left-color: #00FF00;
+}
+.lm li div > div:first-of-type {
+  border-bottom-color: #00FF00;
+}
+.lm li div > div:last-of-type {
+  border-top-color: #00FF00;
+}
 .lm li div.toggle { background: transparent url(./images/exp.gif) no-repeat scroll center center; }
 .lm li a {color: #BDDBDB; }
 .lm li a.focus {background-color: #BDDBDB; color: #272E36;}
@@ -118,12 +133,23 @@ div#tdcont {background: #272E36; }
 div.tab { background: #272E36; }
 div#lcont { background: #272E36; font-weight: bold; color: #BDDBDB;}
 
-div#gcont table {color: #BDDBDB; font-weight: bold;}
-div#gcont table td.Header {background: #323A46;}
+div#gcont {color: #BDDBDB; font-weight: bold;}
+div#gcont div.row.Header {background: #323A46;}
 
 .tabbar {background-color: #1e2124;}
-.tabbar li a:hover {border-top: 2px solid #00FF00;}
-.tabbar li.selected a { border-top: 2px solid #BDDBDB; background: #272E36; color: #BDDBDB; font-weight: bold;}
+.tabbar li.nav-item a.nav-link {
+  border: 1px solid #D0D0D0;
+  background-color: #272E36;
+}
+.tabbar li.nav-item a.nav-link:hover {
+  border-top: 2px solid #00FF00;
+}
+.tabbar li.nav-item.selected a.nav-link {
+  border-top: 2px solid #BDDBDB;
+  background-color: #272E36;
+  color: #BDDBDB;
+  font-weight: bold;
+}
 
 div.dlg-header { background-color: #1e2124; color: #00FF00;}
 div.content {color: #BDDBDB;}
@@ -150,3 +176,11 @@ div#tadd { background-color: #1e2124; border: 2px solid #909090; color: #BDDBDB;
 
 .sthdr { color: #00FF00;}
 .stval { color: #BDDBDB;}
+
+@media (min-width: 768px) { 
+  /* Custom rules for medium devices */
+  div#t .nav-link {
+    background-color: transparent;
+    border: none;
+  }
+}

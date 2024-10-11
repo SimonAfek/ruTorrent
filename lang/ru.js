@@ -140,6 +140,10 @@ var theUILang =
  time_m				: "м ", /*for x minutes remaining*/
  time_s				: "с ", /*for x seconds remaining*/
  Base_directory			: "Директория",
+ Torrent_options		: "Torrent Options",
+ Return_select_label		: "Select",
+ Add_from_file			: "Add From File",
+ Add_from_URL			: "Add From URL",
  Number_Peers_min		: "Минимальное кол-во пиров",
  Number_Peers_max		: "Максимальное кол-во пиров",
  Tracker_Numwant		: "Желаемое кол-во пиров",
@@ -282,6 +286,8 @@ var theUILang =
  webBadSessionError		: "Плагин не будет работать. Веб сервер должен иметь доступ на выполнение к директории session rtorrent",
  webBadSessionWarning		: "Часть функциональности плагина будет недоступна. Веб сервер должен иметь доступ на выполнение к директории session rtorrent",
  Developers			: "Разработчики",
+ Original_webui			: "Original µTorrent WebUI",
+ rTorrent_adaption		: "rTorrent adaption (ruTorrent)",
  Check_new_version		: "Проверка наличия новых версий",
  here				: "здесь",
  Num_No				: "№", // This means "Number". To be used as header for number count, e.g.: throttle/ratio plugin
@@ -291,9 +297,12 @@ var theUILang =
  Toggle_details			: "Показать/скрыть детали",
  Toggle_categories		: "Показать/скрыть категории",
  Delete_current_torrents	: "Удалить торрент(ы)",
+ Quick_search			: "Быстрый поиск",
  Select_all			: "Выделить все",
  Deselect_all			: "Отмена выделения",
  showSpeedInTitle		: "Скорость в заголовке",
+ sidePanelMinWidth		: "Side panel min width",
+ listTableMinHeight		: "List table min height",
  speedGraphDuration		: "Длительность графика скорости",
  speedGraphDurationOptions		: {600: "10 min", 1800: "30 min", 3600: "1 hr", 10800: "3 hrs"},
  badTempPath			: "Веб сервер не имеет доступа к директории tmp на чтение/запись/выполнение. ruTorrent не будет работать.",

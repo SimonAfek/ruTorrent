@@ -140,6 +140,10 @@ var theUILang =
  time_m				: "dk ", /*for x minutes remaining*/
  time_s				: "sn ", /*for x seconds remaining*/
  Base_directory			: "Klasör",
+ Torrent_options		: "Torrent Options",
+ Return_select_label		: "Select",
+ Add_from_file			: "Add From File",
+ Add_from_URL			: "Add From URL",
  Number_Peers_min		: "En az eş sayısı",
  Number_Peers_max		: "En fazla eş sayısı",
  Tracker_Numwant		: "İstenen eş sayısı",
@@ -282,6 +286,8 @@ var theUILang =
  webBadSessionError		: "Eklenti çalışmayacak. Web sunucusu kullanıcısı rtorrent session dizininde çalıştırma erişimine sahip olmalıdır",
  webBadSessionWarning		: "Bazı işlevler kullanılamayacak. Web sunucusu kullanıcısı rtorrent session dizininde çalıştırma erişimine sahip olmalıdır",
  Developers			: "Geliştiriciler",
+ Original_webui			: "Original µTorrent WebUI",
+ rTorrent_adaption		: "rTorrent adaption (ruTorrent)",
  Check_new_version		: "Yeni sürümü kontrol etmek için",
  here				: "tıklayın",
  Num_No				: "No", // This means "Number". To be used as header for number count, e.g.: throttle/ratio plugin
@@ -291,9 +297,12 @@ var theUILang =
  Toggle_details			: "Ayrıntıları aç/kapat",
  Toggle_categories		: "Kategorileri aç/kapat",
  Delete_current_torrents	: "Geçerli torrent'(lar)ı sil",
+ Quick_search			: "Quick search",
  Select_all : "Tümünü seç",
  Deselect_all : "Tüm seçimi kaldır",
  showSpeedInTitle : "Başlıkta hızı göster",
+ sidePanelMinWidth		: "Side panel min width",
+ listTableMinHeight		: "List table min height",
  speedGraphDuration		: "Hız grafiği zaman aralığı",
  speedGraphDurationOptions		: {600: "10 dk", 1800: "30 dk", 3600: "1 saat", 10800: "3 saat"},
  badTempPath : "Web sunucusu kullanıcısının tmp dizinine okuma/yazma/çalıştırma erişimi yok. ruTorrent çalışmayacak.",

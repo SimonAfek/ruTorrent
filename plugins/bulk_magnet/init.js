@@ -148,34 +148,24 @@ plugin.wasAdded = function(data)
 	}
 }
 
-plugin.onLangLoaded = function()
-{
+plugin.onLangLoaded = function() {
 	this.registerTopMenu(9);
+	const dlgBulkAddContent = $("<div>").addClass("cont fxcaret").append(
+		$("<textarea>").attr({id:"bulkadd"}).on("input", (ev) => {
+			$('#dlgBulkAdd .OK').prop('disabled', ev.target.value.trim() === '');
+		}),
+		$("<span>").text(theUILang.bulkAddDescription),
+	);
+	const dlgBulkAddButtons = $("<div>").addClass("buttons-list").append(
+		$("<button>").attr({type:"button"}).addClass("OK").prop("disabled", true).on("click", () => {theDialogManager.hide("dlgBulkAdd"); plugin.bulkAdd(); return false;}).text(theUILang.ok),
+		$("<button>").attr({type:"button"}).addClass("Cancel").text(theUILang.Cancel),
+	);
 	theDialogManager.make( "dlgBulkAdd", theUILang.bulkAdd,
-		"<div class='container'>"+
-			"<textarea id='bulkadd'></textarea>"+
-			theUILang.bulkAddDescription+
-		"</div>"+
-		"<div class='aright buttons-list'>"+
-			"<input type='button' class='OK Button' disabled='disabled' value='"+theUILang.ok+"'/>"+
-			"<input type='button' class='Cancel Button' value='"+theUILang.Cancel+"'/>"+
-		"</div>");
-	var text = $$('bulkadd');
-	theDialogManager.setHandler('dlgBulkAdd','beforeShow',function()
-	{
-		text.value = '';
+		[dlgBulkAddContent, dlgBulkAddButtons],
+	);
+	theDialogManager.setHandler('dlgBulkAdd', 'beforeShow', function() {
+		$$('bulkadd').value = '';
 	});
-	$('#dlgBulkAdd .OK').on('click', function()
-	{
-		theDialogManager.hide("dlgBulkAdd");
-		plugin.bulkAdd();
-		return(false);
-	});
-	text.onupdate = text.onkeyup = function()
-	{
-		$('#dlgBulkAdd .OK').prop('disabled', text.value.trim()=='');
-	};
-	text.onpaste = function() { setTimeout( text.onupdate, 10 ) };
 };
 
 plugin.onRemove = function()

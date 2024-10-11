@@ -140,6 +140,10 @@ var theUILang =
  time_m				: "Perc ", /*for x minutes remaining*/
  time_s				: "mp ", /*for x seconds remaining*/
  Base_directory			: "Mappa",
+ Torrent_options		: "Torrent Options",
+ Return_select_label		: "Select",
+ Add_from_file			: "Add From File",
+ Add_from_URL			: "Add From URL",
  Number_Peers_min		: "Peer kapcsolatok minimum száma",
  Number_Peers_max		: "Peer kapcsolatok maximum száma",
  Tracker_Numwant		: "Kért peer kapcsolatok száma",
@@ -282,6 +286,8 @@ var theUILang =
  webBadSessionError		: "A plugin nem fog működni. A webszerver felhasználónak rendelkeznie kell az rtorrent munkamenet könyvtárhoz való végrehajtási hozzáféréssel.",
  webBadSessionWarning		: "Egyes funkciók nem lesznek elérhetők. A webszerver felhasználónak rendelkeznie kell végrehajtási hozzáféréssel az rtorrent munkamenet könyvtárhoz.",
  Developers			: "Fejlesztő",
+ Original_webui			: "Original µTorrent WebUI",
+ rTorrent_adaption		: "rTorrent adaption (ruTorrent)",
  Check_new_version		: "Új verzió ellenörzése",
  here				: "Ide",
  Num_No				: "No.", // This means "Number". To be used as header for number count, e.g.: throttle/ratio plugin
@@ -291,9 +297,12 @@ var theUILang =
  Toggle_details			: "Részletek megjelenítése",
  Toggle_categories		: "Kategória megjelenítése",
  Delete_current_torrents	: "Kiválasztott torrent(ek) törlése",
+ Quick_search			: "Quick search",
  Select_all			: "Összes kijelölés",
  Deselect_all			: "Kijelölés törlése",
  showSpeedInTitle		: "Sebesség megjelenítése a címben",
+ sidePanelMinWidth		: "Side panel min width",
+ listTableMinHeight		: "List table min height",
  speedGraphDuration		: "A sebességgrafikon időtartama",
  speedGraphDurationOptions		: {600: "10 perc", 1800: "30 perc", 3600: "1 óra", 10800: "3 óra"},
  badTempPath			: "A webszerver felhasználónak nincs olvasási/írási/végrehajtási hozzáférése a tmp könyvtárhoz. A ruTorrent nem fog működni.",

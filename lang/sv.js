@@ -138,6 +138,10 @@ var theUILang =
  time_m				: "m ", /*for x minutes remaining*/
  time_s				: "s ", /*for x seconds remaining*/
  Base_directory			: "Katalog",
+ Torrent_options		: "Torrent Options",
+ Return_select_label		: "Select",
+ Add_from_file			: "Add From File",
+ Add_from_URL			: "Add From URL",
  Number_Peers_min		: "Minsta antal peers",
  Number_Peers_max		: "Högsta antal peers",
  Tracker_Numwant		: "Önskat antal peers",
@@ -280,6 +284,8 @@ var theUILang =
  webBadSessionError		: "Insticksprogrammet kommer inte att fungera. Webbserveranvändaren måste ha exekveringsåtkomst till rTorrent's session-katalog",
  webBadSessionWarning		: "Vissa funktioner kommer att vara otillgängliga. Webbserveranvändaren måste ha exekveringsåtkomst till rTorrent's session-katalog",
  Developers			: "Utvecklare",
+ Original_webui			: "Original µTorrent WebUI",
+ rTorrent_adaption		: "rTorrent adaption (ruTorrent)",
  Check_new_version		: "Kolla efter ny version",
  here				: "här",
  Num_No				: "nr.", // This means "Number". To be used as header for number count, e.g.: throttle/ratio plugin
@@ -289,9 +295,12 @@ var theUILang =
  Toggle_details			: "Visa/dölj detaljer",
  Toggle_categories		: "Visa/dölj kategorier",
  Delete_current_torrents	: "Ta bort aktuell(a) torrent(er)",
+ Quick_search			: "Quick search",
  Select_all			: "Markera alla",
  Deselect_all			: "Avmarkera alla",
  showSpeedInTitle		: "Visa hastighet i titel",
+ sidePanelMinWidth		: "Side panel min width",
+ listTableMinHeight		: "List table min height",
  speedGraphDuration		: "Duration of speed graph",
  speedGraphDurationOptions		: {600: "10 min", 1800: "30 min", 3600: "1 hr", 10800: "3 hrs"},
  badTempPath			: "Webserver user doesn't have read/write/execute access to the tmp directory. ruTorrent will not work.",

@@ -116,9 +116,18 @@ plugin.fromBackground = function( no )
 	plugin.onStart(this.foreground); 
 }
 
+plugin.copyConsoleLog = function() {
+	const consoleLog = $('#tskcmdlog').text();
+	if (consoleLog !== "") {
+		copyToClipboard(consoleLog);
+	} else {
+		log("Console log is empty.");
+	}
+}
+
 plugin.toBackground = function()
 {
-       	if(!plugin.isInBackground())
+	if(!plugin.isInBackground())
 		plugin.background[ plugin.foreground.no ] = cloneObject( this.foreground );
 	plugin.callNotification("HideInterface");	
 	plugin.clear();			
@@ -216,27 +225,24 @@ plugin.kill = function()
 		plugin.callNotification("Finished");
 }
 
-plugin.setConsoleControls = function( errPresent )
-{
+plugin.setConsoleControls = function(errPresent) {
 	$('#tskBackground').prop( 'disabled', !plugin.canDetachTask() );
-	if(plugin.foreground.status>=0)
-	{
+	if (plugin.foreground.status >= 0) {
 		$('#tsk_btns').css( "background", "none" );
 		$("#tskConsole-header").html(theUILang.tskCommandDone);
+		if ($('#tskcmdlog').text() === "") {
+			// hide copy log button if log output is empty
+			$("#tskCopy").hide();
+		};
 	}
 	else
 		$('#tsk_btns').css( "background", "transparent url(./plugins/_task/images/ajax-loader.gif) no-repeat 5px 7px" );
-	if(errPresent)
-	{
-		$('#tskcmdlog').height(plugin.cHeight-18).parent().height(plugin.cHeight);
+	if (errPresent) {
 		$('#tskcmderrors').show();
 		$('#tskcmderrors_set').show();
-	}
-	else
-	{
+	} else {
 		$('#tskcmderrors').hide();
 		$('#tskcmderrors_set').hide();
-		$('#tskcmdlog').height(plugin.cHeight*2+3).parent().height(plugin.cHeight*2+21);
 	}
 }
 
@@ -472,25 +478,6 @@ theTabs.onShow = function(id)
 		plugin.tasksOnShow.call(this,id);
 };
 
-plugin.resizeBottom = theWebUI.resizeBottom;
-theWebUI.resizeBottom = function( w, h )
-{
-	plugin.resizeBottom.call(theWebUI,w,h);
-	if(theWebUI.configured)
-	{
-	       	if(w!==null)
-			w-=8;
-		if(h!==null)
-       		{
-			h-=($("#tabbar").outerHeight());
-			h-=2;
-        	}
-		var table = this.getTable("tasks");
-		if(table)
-			table.resize(w,h);
-	}
-}
-
 plugin.canDetachTask = function()
 {
 	return( !(plugin.foreground.options && plugin.foreground.options.nohide) &&
@@ -580,23 +567,33 @@ plugin.onGetTasks = function(d)
 	}		
 }
 
-plugin.onLangLoaded = function()
-{
-	theDialogManager.make("tskConsole",theUILang.tskCommand,
-		"<div class='fxcaret'>"+
-			"<fieldset id='tskcmdlog_set'>"+
-				"<legend>"+theUILang.tskConsole+"</legend>"+
-				"<div class='tskconsole' id='tskcmdlog'></div>"+
-			"</fieldset>"+
-			"<fieldset id='tskcmderrors_set'>"+
-				"<legend>"+theUILang.tskErrors+"</legend>"+
-				"<div class='tskconsole' id='tskcmderrors'></div>"+
-			"</fieldset>"+
-		"</div>"+
-		"<div class='aright buttons-list' id='tsk_btns'>"+
-			"<input type='button' id='tskBackground' class='Button' value='"+theUILang.tskBackground+"'/>"+
-			"<input type='button' id='tskCancel' class='Cancel Button' value='"+theUILang.Cancel+"'/>"+
-		"</div>",true);
+plugin.onLangLoaded = function() {
+	const tskConsoleContent = $("<div>").addClass("cont fxcaret").append(
+		$("<fieldset>").attr({id:"tskcmdlog_set"}).append(
+			$("<legend>").text(theUILang.tskConsole),
+			$("<div>").attr({id:"tskcmdlog"}).addClass("tskconsole"),
+		),
+		$("<fieldset>").attr({id:"tskcmderrors_set"}).append(
+			$("<legend>").text(theUILang.tskErrors),
+			$("<div>").attr({id:"tskcmderrors"}).addClass("tskconsole"),
+		),
+	);
+	const tskConsoleButtons = $("<div>").attr({id:"tsk_btns"}).addClass("buttons-list").append(
+		$("<button>").attr({type:"button", id:"tskCopy"})
+			.on("click", plugin.copyConsoleLog)
+			.text(theUILang.tskCopy),
+		$("<button>").attr({type:"button", id:"tskBackground"})
+			.on("click", plugin.toBackground)
+			.text(theUILang.tskBackground),
+		$("<button>").attr({type:"button", id:"tskCancel"})
+			.addClass("Cancel")
+			.text(theUILang.Cancel),
+	);
+	theDialogManager.make("tskConsole", theUILang.tskCommand,
+		[tskConsoleContent, tskConsoleButtons],
+		true,
+	);
+
 	theDialogManager.setHandler('tskConsole','afterHide',function()
 	{
 		if( plugin.foreground.no )
@@ -612,6 +609,5 @@ plugin.onLangLoaded = function()
 		if(!plugin.cHeight)
 			plugin.cHeight = $('#tskcmderrors').parent().height();
 	});
-	$('#tskBackground').on('click', plugin.toBackground );
 	$(".tskconsole").enableSysMenu();
 }

@@ -140,6 +140,10 @@ var theUILang =
  time_m				: "m ", /*for x minutes remaining*/
  time_s				: "s ", /*for x seconds remaining*/
  Base_directory			: "Directory",
+ Torrent_options		: "Torrent Options",
+ Return_select_label		: "Select",
+ Add_from_file			: "Add From File",
+ Add_from_URL			: "Add From URL",
  Number_Peers_min		: "Minimum number of peers",
  Number_Peers_max		: "Maximum number of peers",
  Tracker_Numwant		: "Wished number of peers",
@@ -282,6 +286,8 @@ var theUILang =
  webBadSessionError		: "Plugin will not work. Webserver user must have execute access to the rtorrent session directory",
  webBadSessionWarning		: "Some functionality will be unavailable. Webserver user must have execute access to the rtorrent session directory",
  Developers			: "Developers",
+ Original_webui	: "Original µTorrent WebUI",
+ rTorrent_adaption		: "rTorrent adaption (ruTorrent)",
  Check_new_version		: "Check new version",
  here				: "here",
  Num_No				: "No.", // This means "Number". To be used as header for number count, e.g.: throttle/ratio plugin
@@ -291,9 +297,12 @@ var theUILang =
  Toggle_details			: "Toggle details",
  Toggle_categories		: "Toggle categories",
  Delete_current_torrents	: "Delete current torrent(s)",
+ Quick_search			: "Quick search",
  Select_all			: "Select all",
  Deselect_all			: "Deselect all",
  showSpeedInTitle		: "Show speed in the title",
+ sidePanelMinWidth		: "Side panel min width",
+ listTableMinHeight		: "List table min height",
  speedGraphDuration		: "Duration of speed graph",
  speedGraphDurationOptions		: {600: "10 min", 1800: "30 min", 3600: "1 hr", 10800: "3 hrs"},
  badTempPath			: "Webserver user doesn't have read/write/execute access to the tmp directory. ruTorrent will not work.",

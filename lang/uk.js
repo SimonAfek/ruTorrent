@@ -140,6 +140,10 @@ var theUILang =
  time_m				: " хв ", /*for x minutes remaining*/
  time_s				: " с ", /*for x seconds remaining*/
  Base_directory			: "Каталог",
+ Torrent_options		: "Torrent Options",
+ Return_select_label		: "Select",
+ Add_from_file			: "Add From File",
+ Add_from_URL			: "Add From URL",
  Number_Peers_min		: "Мін. кількість пірів",
  Number_Peers_max		: "Макс. кількість пірів",
  Tracker_Numwant		: "Бажана кількість пірів",
@@ -282,6 +286,8 @@ var theUILang =
  webBadSessionError		: "Плагін не працюватиме. Користувач веб-сервера повинен мати права на виконання на каталог сесії rtorrent",
  webBadSessionWarning		: "Деякі функції не будуть доступні. Користувач веб-сервера повинен мати права на виконання на каталог сесії rtorrent",
  Developers			: "Розробники",
+ Original_webui			: "Original µTorrent WebUI",
+ rTorrent_adaption		: "rTorrent adaption (ruTorrent)",
  Check_new_version		: "Перевірка наявності нових версій",
  here				: "тут",
  Num_No				: "№", // This means "Number". To be used as header for number count, e.g.: throttle/ratio plugin
@@ -291,9 +297,12 @@ var theUILang =
  Toggle_details			: "Перемкнути деталі",
  Toggle_categories		: "Перемкнути категорії",
  Delete_current_torrents	: "Видлити поточні торенти",
+ Quick_search			: "Quick search",
  Select_all			: "Вибрати все",
  Deselect_all			: "Скасувати вибір",
  showSpeedInTitle		: "Показувати швидкість у заголовку",
+ sidePanelMinWidth		: "Side panel min width",
+ listTableMinHeight		: "List table min height",
  speedGraphDuration		: "Duration of speed graph",
  speedGraphDurationOptions		: {600: "10 min", 1800: "30 min", 3600: "1 hr", 10800: "3 hrs"},
  badTempPath			: "Веб-сервер не має повного доступу до каталогу tmp. ruTorrent не зможе працювати.",

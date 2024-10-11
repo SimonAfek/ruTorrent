@@ -140,6 +140,10 @@ var theUILang =
  time_m				: "分钟 ", /*for x minutes remaining*/
  time_s				: "秒 ", /*for x seconds remaining*/
  Base_directory			: "目录",
+ Torrent_options		: "Torrent 选项",
+ Return_select_label		: "选择",
+ Add_from_file			: "添加文件",
+ Add_from_URL			: "添加URL",
  Number_Peers_min		: "最小用户数",
  Number_Peers_max		: "最大用户数",
  Tracker_Numwant		: "希望用户数",
@@ -282,6 +286,8 @@ var theUILang =
  webBadSessionError		: "插件将不会工作. 网页服务器运行用户必须对 rTorrent 的 session 文件夹有 执行 权限",
  webBadSessionWarning		: "某些功能将不可用. 网页服务器运行用户必须对 rTorrent 的 session 文件夹有 执行 权限",
  Developers			: "开发者",
+ Original_webui			: "原生 µTorrent WebUI",
+ rTorrent_adaption		: "rTorrent 适配 (ruTorrent)",
  Check_new_version		: "检查新版本",
  here				: "here",
  Num_No				: "No.", // This means "Number". To be used as header for number count, e.g.: throttle/ratio plugin
@@ -291,9 +297,12 @@ var theUILang =
  Toggle_details			: "切换详情",
  Toggle_categories		: "切换分类",
  Delete_current_torrents	: "删除当前 torrent(s)",
+ Quick_search			: "快速搜索",
  Select_all			: "全选",
  Deselect_all			: "全不选",
  showSpeedInTitle		: "在标题中显示速度",
+ sidePanelMinWidth		: "Side panel min width",
+ listTableMinHeight		: "List table min height",
  speedGraphDuration		: "Duration of speed graph",
  speedGraphDurationOptions		: {600: "10 min", 1800: "30 min", 3600: "1 hr", 10800: "3 hrs"},
  badTempPath			: "网页服务器运行用户对 tmp 文件夹没有 读/写/执行 权限. ruTorrent 将不会工作.",

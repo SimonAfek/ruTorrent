@@ -140,6 +140,10 @@ var theUILang =
  time_m				: "m ", /*for x minutes remaining*/
  time_s				: "s ", /*for x seconds remaining*/
  Base_directory			: "Diretório",
+ Torrent_options		: "Opções do Torrent",
+ Return_select_label		: "Selecionar",
+ Add_from_file			: "Adicionar por ficheiro",
+ Add_from_URL			: "Adicionar por URL",
  Number_Peers_min		: "Número mínimo de pares",
  Number_Peers_max		: "Número máximo de pares",
  Tracker_Numwant		: "Número desejado de pares",
@@ -282,6 +286,8 @@ var theUILang =
  webBadSessionError		: "Plugin não irá funcionar. Utilizador do servidor precisa ter permissão de acesso ao diretório da secessão",
  webBadSessionWarning		: "Algumas funcionalidades estarão indisponíveis. Utilizador do servidor precisa ter permissão de acesso ao diretório da secessão",
  Developers			: "Desenvolvedores",
+ Original_webui			: "Original µTorrent WebUI",
+ rTorrent_adaption		: "rTorrent adaption (ruTorrent)",
  Check_new_version		: "Verificar nova versão",
  here				: "aqui",
  Num_No				: "N°", // This means "Number". To be used as header for number count, e.g.: throttle/ratio plugin
@@ -291,9 +297,12 @@ var theUILang =
  Toggle_details			: "Mostrar/Ocultar detalhes",
  Toggle_categories		: "Mostrar/Ocultar categorias",
  Delete_current_torrents	: "Remover torrent(s) atuais(s)",
+ Quick_search			: "Pesquisa rápida",
  Select_all			: "Marcar todos",
  Deselect_all			: "Desmarcar todos",
  showSpeedInTitle		: "Mostrar velocidade no título",
+ sidePanelMinWidth		: "Side panel min width",
+ listTableMinHeight		: "List table min height",
  speedGraphDuration		: "Duração do gráfico de velocidade",
  speedGraphDurationOptions		: {600: "10 min", 1800: "30 min", 3600: "1 hr", 10800: "3 hrs"},
  badTempPath			: "Utilizador do servidor não tem permissão de leitura/escrita/execução ao diretório tmp. ruTorrent não vai funcionar.",

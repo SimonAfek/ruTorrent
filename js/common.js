@@ -13,69 +13,6 @@ function $type(obj)
 	return( (obj == undefined) ? false : (obj.constructor == Array) ? "array" : typeof obj );
 }
 
-function browserDetect()
-{
-	var ua = navigator.userAgent.toLowerCase();
-	this.isiOS =  /(iPad|iPhone|iPod)/.test(navigator.userAgent);
-	this.isGecko = (ua.indexOf("gecko") !=- 1 && ua.indexOf("safari") ==- 1);
-	this.isAppleWebKit = (ua.indexOf("webkit") !=- 1);
-	this.isKonqueror = (ua.indexOf("konqueror") !=- 1);
-	this.isOpera = (ua.indexOf("opera") !=- 1);
-	this.isIE = (ua.indexOf("msie") !=- 1 && !this.isOpera && (ua.indexOf("webtv") ==- 1));
-	this.isMozilla = (this.isGecko && ua.indexOf("gecko/") + 14 == ua.length);
-	this.isFirefox = (ua.indexOf("firefox/") !=- 1);
-	this.isChrome = (ua.indexOf("chrome/") !=- 1);
-	this.isMidori = (ua.indexOf("midori/") !=- 1);
-	this.isSafari = (ua.indexOf("safari") !=- 1) && !this.isChrome;
-	this.versionMinor = parseFloat(navigator.appVersion);
-	if(this.isGecko && !this.isMozilla && !this.isKonqueror)
-		this.versionMinor = parseFloat(ua.substring(ua.indexOf("/", ua.indexOf("gecko/") + 6) + 1));
-	else
-	if(this.isMozilla)
-		this.versionMinor = parseFloat(ua.substring(ua.indexOf("rv:") + 3));
-	else
-	if(this.isIE && this.versionMinor >= 4)
-		this.versionMinor = parseFloat(ua.substring(ua.indexOf("msie ") + 5));
-	else
-	if(this.isKonqueror)
-		this.versionMinor = parseFloat(ua.substring(ua.indexOf("konqueror/") + 10));
-	else
-	if(this.isSafari || this.isChrome)
-		this.versionMinor = parseFloat(ua.substring(ua.lastIndexOf("safari/") + 7));
-	else
-	if(this.isOpera)
-		this.versionMinor = parseFloat(ua.substring(ua.indexOf("opera") + 6));
-	if(this.isIE && document.documentMode)
-		this.versionMajor = document.documentMode;
-	else
-		this.versionMajor = parseInt(this.versionMinor);
-
-	this.mode = document.compatMode ? document.compatMode : "BackCompat";
-	this.isIE7x = (this.isIE && this.versionMajor == 7);
-	this.isIE7up = (this.isIE && this.versionMajor >= 7);
-	this.isIE8up = (this.isIE && this.versionMajor >= 8);
-	this.isFirefox3x = (this.isFirefox && this.versionMajor == 3);
-
-	var h = document.getElementsByTagName("html")[0];
-	var c = h.className;
-	if(this.isIE)
-		h.className = "ie" + " ie" + this.versionMajor + " " + c;
-	else
-	if(this.isOpera)
-		h.className = ("opera " + c);
-	else
-	if(this.isKonqueror)
-		h.className = ("konqueror " + c);
-	else
-	if(this.isChrome)
-		h.className = ("webkit chrome " + c);
-	else
-	if(this.isAppleWebKit)
-		h.className = ("webkit safari " + c);
-	else
-	if(this.isGecko)
-		h.className = ("gecko " + c);
-}
 var browser = new browserDetect();
 
 $(document).ready(function()
@@ -223,10 +160,10 @@ $.fn.extend(
 		}));
 	},
 
-	enableSysMenu: function()
-	{
-		return(this.on("contextmenu",function(e) { e.stopImmediatePropagation(); }).
-			on("selectstart",function(e) { e.stopImmediatePropagation(); return(true); }));
+	enableSysMenu: function() {
+		return this
+			.on("contextmenu", (e) => e.stopImmediatePropagation())
+			.on("selectstart", (e) => {e.stopImmediatePropagation(); return true;});
 	},
 
 	setCursorPosition: function(pos)
@@ -295,16 +232,19 @@ function escapeHTML(str)
 	return( String(str).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;') );
 }
 
-function askYesNo( title, content, funcYesName )
-{
-	$("#yesnoDlg-header").html(title);
-	$("#yesnoDlg-content").html(content);
-	$("#yesnoOK").off('click');
-	$("#yesnoOK").on('click', function()
-	{
-		typeof(funcYesName)==="function" ? funcYesName() : eval(funcYesName);
+/**
+ * Confirm again before taking action.
+ * @param {string} title Title of the dialog.
+ * @param {string} content Hint of the action to be confirmed.
+ * @param {Function | string} funcYesName Function to be executed if confirmed.
+ */
+function askYesNo(title, content, funcYesName) {
+	$("#yesnoDlg-header").text(title);
+	$("#yesnoDlg-content").text(content);
+	$("#yesnoOK").off('click').on('click', () => {
+		$type(funcYesName) === "function" ? funcYesName() : eval(funcYesName);
 		theDialogManager.hide("yesnoDlg");
-		return(false);
+		return false;
 	});
 	theDialogManager.show("yesnoDlg");
 }
@@ -356,18 +296,36 @@ var theURLs =
 	IPQUERYURL		: "https://ipinfo.io/"
 };
 
-var theOptionsSwitcher =
-{
+const theOptionsSwitcher = {
 	current: "st_gl",
+	items: {},
 
-	run: function(id)
-	{
-	        $('#'+theOptionsSwitcher.current).hide();
-		$("#mnu_" + theOptionsSwitcher.current).toggleClass("focus");
-		theOptionsSwitcher.current = id;
-	        $('#'+theOptionsSwitcher.current).show();
-		$("#mnu_" + theOptionsSwitcher.current).toggleClass("focus");
-	}
+	addHandler: function(id, type, handler) {
+		if ($type(this.items[id])) {
+			const existing = this.items[id][type];
+			if (existing) {
+				this.items[id][type] = function() {
+					existing();
+					handler();
+				};
+			} else {
+				this.items[id][type] = handler;
+			}
+		}
+		return this;
+	},
+
+	run: function(id) {
+		$('#' + this.current).hide();
+		$("#mnu_" + this.current).removeClass("focus");
+		if ($type(this.items[this.current]) && ($type(this.items[this.current].afterHide) === "function"))
+			this.items[this.current].afterHide();
+		this.current = id;
+		$('#' + this.current).show();
+		$("#mnu_" + this.current).addClass("focus");
+		if ($type(this.items[this.current]) && ($type(this.items[this.current].afterShow) === "function"))
+			this.items[this.current].afterShow();
+	},
 };
 
 var theConverter =
@@ -830,40 +788,36 @@ Timer.prototype.stop = function()
 	this.interval = (new Date()).getTime() - this.initial;
 };
 
-var theTabs =
-{
-	tabs:
-	{
-   		gcont : theUILang.General,
-   		FileList : theUILang.Files,
-   		TrackerList : theUILang.Trackers,
-   		PeerList : theUILang.Peers,
-   		Speed : theUILang.Speed,
-   		PluginList : theUILang.Plugins,
-   		lcont : theUILang.Logger
-   	},
+var theTabs = {
+	tabs: {
+		gcont: theUILang.General,
+		FileList: theUILang.Files,
+		TrackerList: theUILang.Trackers,
+		PeerList: theUILang.Peers,
+		Speed: theUILang.Speed,
+		PluginList: theUILang.Plugins,
+		lcont: theUILang.Logger
+  },
 
-   	init: function()
-   	{
-		if(browser.isKonqueror && (browser.versionMajor<4))
-		{
-			delete this.tabs["Speed"];
-			$("#Speed").remove();
-		}
-   		var s = "";
-   		for(var n in this.tabs)
-      			s += "<li id=\"tab_" + n + "\"><a href=\"javascript://void();\" onmousedown=\"theTabs.show('" + n + "'); return(false);\" onfocus=\"this.blur();\">" + this.tabs[n] + "</a></li>";
-		$("#tabbar").html(s);
-		$("#tab_lcont").append( $("<input type='button'>").attr("id","clear_log").addClass('Button').val(theUILang.ClearButton).hide().on('click', function()
-		{
-			$("#lcont").empty();
-		}).on('focus', function()
-		{
-			this.blur();
-		}));
-   		this.show("gcont");
-   		$('#gcont,#lcont').enableSysMenu();
-   	},
+	init: function() {
+		$("#tabbar").append(
+			...Object.entries(this.tabs).map(([id, name]) => $("<li>").attr({id:`tab_${id}`}).addClass("nav-item").append(
+				$("<a>").attr({href:"#"}).on(
+					"click", () => theTabs.show(id)
+				).on("click", (ev) => ev.target.blur()).addClass("nav-link").text(name),
+			)),
+		);
+		$("#tab_lcont").after(
+			$("<button>").attr(
+				{type:"button", id:"clear_log"}
+			).addClass('Button mx-2').text(theUILang.ClearButton).hide().on(
+				'click', () => $("#lcont").empty()
+			).on('focus', function() {
+				this.blur();
+			}));
+		this.show("gcont");
+		$('#gcont,#lcont').enableSysMenu();
+	},
 	onShow : function(id)
 	{
 	},
@@ -922,17 +876,15 @@ var theTabs =
    	}
 };
 
-function log(text,noTime,divClass,force)
-{
-	var tm = '';
-	if(!noTime)
-		tm = "[" + theConverter.date(new Date().getTime()/1000) + "]";
+function log(text,noTime,divClass,force) {
+	const tm = noTime ? "" : `[${theConverter.date(new Date().getTime() / 1000)}]`;
 	if(!divClass)
 		divClass = 'std';
-	var obj = $("#lcont");
-	if(obj.length)
-	{
-		obj.append( $("<div>").addClass(divClass).text(tm + " " + text).show() );
+	const obj = $("#lcont");
+	if (obj.length) {
+		obj.append(
+			$("<span>").addClass(divClass).text(tm + " " + text)
+		);
 		obj[0].scrollTop = obj[0].scrollHeight;
 		if(iv(theWebUI.settings["webui.log_autoswitch"]) || force)
 			theTabs.show("lcont");
@@ -953,28 +905,16 @@ function logHTML(text,divClass,force)
 	}
 }
 
-function noty(msg,status,noTime)
-{
-	if($.noty)
-	{
-		$.noty(
-		{
+function noty(msg, status, noTime) {
+	if ($.noty) {
+		$.noty({
 			text: escapeHTML(msg),
 			layout : 'bottomRight',
 			type: status
 		});
 	}
-	var obj = $("#lcont");
-	if(obj.length)
-	{
-		var tm = '';
-		if(!noTime)
-			tm = "[" + theConverter.date(new Date().getTime()/1000) + "]";
-		obj.append( $("<div>").addClass('std').text(tm + " " + msg).show() );
-		obj[0].scrollTop = obj[0].scrollHeight;
-		if(iv(theWebUI.settings["webui.log_autoswitch"]) && !$.noty)
-			theTabs.show("lcont");
-	}
+	const force = iv(theWebUI.settings["webui.log_autoswitch"]) && !$.noty;
+	log(msg, noTime, "std", force);
 }
 
 function fallbackCopyToClipboard(text)

@@ -139,6 +139,10 @@ var theUILang =
  time_m				: "m ", /*for x minutes remaining*/
  time_s				: "s ", /*for x seconds remaining*/
  Base_directory			: "Mappe",
+ Torrent_options		: "Torrent Options",
+ Return_select_label		: "Select",
+ Add_from_file			: "Add From File",
+ Add_from_URL			: "Add From URL",
  Number_Peers_min		: "Minimum antall peers",
  Number_Peers_max		: "Maksimum antall peers",
  Tracker_Numwant		: "Ønsket antall peers",
@@ -281,6 +285,8 @@ var theUILang =
  webBadSessionError		: "Tilleggsmodul vil ikke fungere. Webserver-bruker må ha kjøretilgang til rTorrent sin sessionmappe.",
  webBadSessionWarning		: "Noe funksjonalitet vil ikke være tilgjengelig. Webserver-bruker må ha kjøretilgang til rTorrent sin sessionmappe.",
  Developers			: "Utviklere",
+ Original_webui			: "Original µTorrent WebUI",
+ rTorrent_adaption		: "rTorrent adaption (ruTorrent)",
  Check_new_version		: "Se etter ny versjon",
  here				: "her",
  Num_No				: "No.", // This means "Number". To be used as header for number count, e.g.: throttle/ratio plugin
@@ -290,9 +296,12 @@ var theUILang =
  Toggle_details			: "Vis/skjul detaljer",
  Toggle_categories		: "Vis/skjul kategorier",
  Delete_current_torrents	: "Slett følgende torrent(er)",
+ Quick_search			: "Quick search",
  Select_all			: "Velg alle",
  Deselect_all			: "Velg ingen",
  showSpeedInTitle		: "Vis hastighet i tittelen",
+ sidePanelMinWidth		: "Side panel min width",
+ listTableMinHeight		: "List table min height",
  speedGraphDuration		: "Varighet av hastighetsgraf",
  speedGraphDurationOptions		: {600: "10 min", 1800: "30 min", 3600: "1 t", 10800: "3 t"},
  badTempPath			: "Webserver-bruker har ikke tilgang til å lese/skrive/kjøre i tmp-mappen. ruTorrent vil ikke fungere.",

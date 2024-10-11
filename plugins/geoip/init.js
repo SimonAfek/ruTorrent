@@ -211,15 +211,26 @@ if(plugin.canChangeMenu() && plugin.retrieveComments)
    	}
 }
 
-plugin.onLangLoaded = function()
-{
-	if(plugin.retrieveComments)
-	{
-		theDialogManager.make("cadd",theUILang.peerComment,
-			'<div class="content fxcaret">'+theUILang.peerCommentLabel+'<br><input type="text" id="peerComment" class="Textbox" maxlength="64"/></div>'+
-			'<div class="aright buttons-list"><input type="button" class="OK Button" value="'+theUILang.ok+'" onclick="theWebUI.addNewComment();theDialogManager.hide(\'cadd\');return(false);" />'+
-				'<input type="button" class="Cancel Button" value="'+theUILang.Cancel+'"/></div>',
-			true);
+plugin.onLangLoaded = function() {
+	if (plugin.retrieveComments) {
+		const caddContent = $("<div>").addClass("cont fxcaret").append(
+			$("<fieldset>").append(
+				$("<legend>").text(theUILang.peerCommentLabel),
+				$("<div>").addClass("row").append(
+					$("<div>").addClass("col-12").append(
+						$("<input>").attr({type:"text", id:"peerComment", maxlength:64}),
+					),
+				),
+			),
+		);
+		const caddButtons = $("<div>").addClass("buttons-list").append(
+			$("<button>").attr({type:"button"}).addClass("OK").on("click", () => {theWebUI.addNewComment(); theDialogManager.hide('cadd'); return(false);}).text(theUILang.ok),
+			$("<button>").attr({type:"button"}).addClass("Cancel").text(theUILang.Cancel),
+		);
+		theDialogManager.make("cadd", theUILang.peerComment,
+			[caddContent, caddButtons],
+			true,
+		);
 		theDialogManager.setHandler('cadd','beforeShow',function()
 		{
 			var peer = theWebUI.peers[theWebUI.getTable("prs").getFirstSelected()];

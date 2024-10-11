@@ -3,159 +3,215 @@
  *
  */
 
-function makeContent()
-{
+function makeContent() {
 	$("#st_up").mouseclick(theWebUI.upRateMenu);
 	$("#st_down").mouseclick(theWebUI.downRateMenu);
 
-	$("#mnu_add").attr("title",theUILang.mnu_add+"...");
-	$("#mnu_remove").attr("title",theUILang.mnu_remove);
-	$("#mnu_start").attr("title",theUILang.mnu_start);
-	$("#mnu_pause").attr("title",theUILang.mnu_pause);
-	$("#mnu_stop").attr("title",theUILang.mnu_stop);
-	$("#mnu_settings").attr("title",theUILang.mnu_settings+"...");
-	$("#mnu_search").attr("title",theUILang.mnu_search+"...");
-	$("#mnu_go").attr("title",theUILang.mnu_go);
-	$("#mnu_help").attr("title",theUILang.mnu_help+"...");
+	[
+		"add", "remove", "start", "pause", "stop",
+		"settings", "search", "go", "help"
+	].forEach(id => {
+		$(`#mnu_${id}`).attr({title:theUILang[`mnu_${id}`] + "..."}).append(
+			$("<span>").addClass("d-inline d-md-none").text(theUILang[`mnu_${id}`]),
+		);
+	});
 
-	$("#query").on('keydown', function(e)
-	{
-		if(e.keyCode == 13)
-		{
+	$("#offcanvas-sidepanel-label").text("ruTorrent v" + theWebUI.version);
+
+	$("#query").on('keydown', function(e) {
+		if (e.keyCode === 13) {
 			theSearchEngines.run();
 		}
 	});
 
-	new DnD("HDivider",
-	{
-		left : function() { return(60); },
-		right : function() { return( $(window).width()-20 ); },
-		restrictY : true,
-		maskId : "dividerDrag",
-		onStart : function(e) { return(theWebUI.settings["webui.show_cats"]); },
-		onRun : function(e) { $(document.body).css( "cursor", "e-resize" ); },
-		onFinish : function(e)
-		{
-		        var self = e.data;
-			var w = self.mask.offset().left-2;
-			theWebUI.resizeLeft(w,null);
-			w = $(window).width()-w-11;
-			theWebUI.resizeTop(w,null);
-      		        theWebUI.resizeBottom(w,null);
+	new DnD("HDivider", {
+		restrictY: true,
+		maskId: "HDivider",
+		onStart: function(e) {return $("#offcanvas-sidepanel").css("display") !== "none";},
+		onRun: function(e) {
+			theWebUI.resizeLeft(parseFloat(e.data.mask.css("left")));
+		},
+		onFinish: function(e) {
+			$("#HDivider").css({left:""});
 			theWebUI.setHSplitter();
-			$(document.body).css( "cursor", "default" );
-		}
+		},
 	});
 
-	new DnD("VDivider",
-	{
-		top : function() { return(60); },
-		bottom : function() { return( $(window).height()-60 ); },
-		restrictX : true,
-		maskId : "dividerDrag",
-		onStart : function(e) { return(theWebUI.settings["webui.show_dets"]); },
-		onRun : function(e) { $(document.body).css( "cursor", "n-resize" ); },
-		onFinish : function(e)
-		{
-		        var self = e.data;
-		        var offs = self.mask.offset();
-      		        theWebUI.resizeTop(null,offs.top-($("#t").is(":visible") ?  $("#t").height() : -1)-8);
-      		        theWebUI.resizeBottom(null,$(window).height()-offs.top-$("#StatusBar").height()-14);
-      		        theWebUI.setVSplitter();
-			$(document.body).css( "cursor", "default" );
-		}
+	new DnD("VDivider", {
+		restrictX: true,
+		maskId: "VDivider",
+		onStart: function(e) {return $("#tdetails").css("display") !== "none";},
+		onRun: function(e) {
+			theWebUI.resizeTop(null, parseFloat(e.data.mask.css("top")) - $("#t").outerHeight() - 5);
+		},
+		onFinish: function(e) {
+			$("#VDivider").css({top:""});
+			theWebUI.setVSplitter();
+		},
 	});
 
-	$(document.body).append($("<iframe name='uploadfrm'/>").css({visibility: "hidden"}).attr( { name: "uploadfrm" } ).width(0).height(0).on('load', function()
-	{
+	$(document.body).append($("<iframe name='uploadfrm'/>").css({visibility: "hidden"}).attr( { name: "uploadfrm" } ).width(0).height(0).on('load', function() {
 		$("#torrent_file").val("");
-		$("#add_button").prop("disabled",false);
+		$("#add_button").prop("disabled",true);
 		var d = this.contentDocument;
-		if(d && (d.location.href != "about:blank"))
-		{
+		if (d && (d.location.href != "about:blank")) {
 			try { var txt = d.body.textContent ? d.body.textContent : d.body.innerText; eval(txt); } catch(e) {}
 		}
 	}));
-	$(document.body).append($("<iframe name='uploadfrmurl'/>").css({visibility: "hidden"}).attr( { name: "uploadfrmurl" } ).width(0).height(0).on('load', function()
-	{
+	$(document.body).append($("<iframe name='uploadfrmurl'/>").css({visibility: "hidden"}).attr( { name: "uploadfrmurl" } ).width(0).height(0).on('load', function() {
 		$("#url").val("");
 		var d = this.contentDocument;
-		if(d && d.location.href != "about:blank")
-			try { eval(d.body.textContent ? d.body.textContent : d.body.innerText); } catch(e) {}
+		if (d && d.location.href != "about:blank")
+			try {
+				eval(d.body.textContent ? d.body.textContent : d.body.innerText);
+			} catch(e) {}
 	}));
-	theDialogManager.make("padd",theUILang.peerAdd,
-		'<div class="content fxcaret">'+theUILang.peerAddLabel+'<br><input type="text" id="peerIP" class="Textbox" value="my.friend.addr:6881"/></div>'+
-		'<div class="aright buttons-list"><input type="button" class="OK Button" value="'+theUILang.ok+'" onclick="theWebUI.addNewPeer();theDialogManager.hide(\'padd\');return(false);" />'+
-			'<input type="button" class="Cancel Button" value="'+theUILang.Cancel+'"/></div>',
-		true);
-	theDialogManager.make("tadd",theUILang.torrent_add,
-		'<div class="cont fxcaret">'+
-			'<form action="addtorrent.php" id="addtorrent" method="post" enctype="multipart/form-data" target="uploadfrm">'+
-				'<label>'+theUILang.Base_directory+':</label><input type="text" id="dir_edit" name="dir_edit" class="TextboxLarge"/><br/>'+
-				'<span id="not_add_path_option">'+
-				'<label>&nbsp;</label><input type="checkbox" name="not_add_path" id="not_add_path"/>'+theUILang.Dont_add_tname+'<br/>'+
-				'</span>'+
-				'<span id="torrents_start_stopped_option">'+
-				'<label>&nbsp;</label><input type="checkbox" name="torrents_start_stopped" id="torrents_start_stopped"/>'+theUILang.Dnt_start_down_auto+'<br/>'+
-				'</span>'+
-				'<span id="fast_resume_option">'+
-				'<label>&nbsp;</label><input type="checkbox" name="fast_resume" id="fast_resume"/>'+theUILang.doFastResume+'<br/>'+
-				'</span>'+
-				'<span id="randomize_hash_option">'+
-				'<label>&nbsp;</label><input type="checkbox" name="randomize_hash" id="randomize_hash"/>'+theUILang.doRandomizeHash+'<br/>'+
-				'</span>'+
-				'<label>'+theUILang.Label+':</label><input type="text" id="tadd_label" name="tadd_label" class="TextboxLarge" /><select id="tadd_label_select"></select><br/>'+
-				'<hr/>'+
-				'<label>'+theUILang.Torrent_file+':</label><input type="file" multiple="multiple" name="torrent_file[]" id="torrent_file" accept=".torrent" class="TextboxLarge"/><br/>'+
-				'<label>&nbsp;</label><input type="submit" value="'+theUILang.add_button+'" id="add_button" class="Button" /><br/>'+
-			'</form>'+
-			'<hr/>'+
-			'<form action="addtorrent.php" id="addtorrenturl" method="post" target="uploadfrmurl">'+
-				'<label>'+theUILang.Torrent_URL+':</label><input type="text" id="url" name="url" class="TextboxLarge"/><br/>'+
-				'<label>&nbsp;</label><input type="submit" id="add_url" value="'+theUILang.add_url+'" class="Button" disabled="true"/>'+
-			'</form>'+
-		'</div>');
 
-	$("#tadd_label_select").on('change', function(e)
-	{
-		var index = this.selectedIndex;
-		switch (index)
-		{
-			case 1:
-			{
+	const paddContent = $("<div>").addClass("cont fxcaret").append(
+		$("<fieldset>").append(
+			$("<legend>").text(theUILang.peerAddLabel),
+			$("<div>").addClass("row").append(
+				$("<div>").addClass("col-12").append(
+					$("<input>").attr({type:"text", id:"peerIP", placeholder:"my.friend.addr:6881"}),
+				),
+			),
+		),
+	);
+	const paddButtons = $("<div>").addClass("buttons-list").append(
+		$("<button>").attr({type:"button"}).addClass("OK").on("click", () => {theWebUI.addNewPeer(); theDialogManager.hide('padd'); return false;}).text(theUILang.ok),
+		$("<button>").attr({type:"button"}).addClass("Cancel").text(theUILang.Cancel),
+	);
+	theDialogManager.make("padd",theUILang.peerAdd,
+		[paddContent, paddButtons],
+		true,
+	);
+	theDialogManager.make("tadd",theUILang.torrent_add,
+		$("<div>").addClass("cont fxcaret").append(
+			$("<form>").attr(
+				{action: "addtorrent.php", id: "addtorrent", method: "post", enctype: "multipart/form-data", target: "uploadfrm"}
+			).append(
+				$("<fieldset>").append(
+					$("<legend>").text(theUILang.Torrent_options),
+					$("<div>").addClass("row").append(
+						$("<div>").addClass("d-none col-md-3 d-md-flex align-items-center justify-content-end").append(
+							$("<label>").attr({for: "dir_edit"}).text(theUILang.Base_directory + ": "),
+						),
+						$("<div>").addClass("col-md-9 d-flex flex-row align-items-center").append(
+							$("<input>").attr(
+								{type: "text", id: "dir_edit", name: "dir_edit", placeholder: theUILang.Base_directory}
+							).addClass("flex-grow-1"),
+						),
+					),
+					$("<div>").addClass("row").append(
+						$("<div>").addClass("col-md-9 offset-md-3 d-flex flex-column align-items-start").append(
+							...[
+								["not_add_path", theUILang.Dont_add_tname],
+								["torrents_start_stopped", theUILang.Dnt_start_down_auto],
+								["fast_resume", theUILang.doFastResume],
+								["randomize_hash", theUILang.doRandomizeHash],
+							].map(([id, label]) => $("<div>").attr({id: id + "_option"}).addClass(
+								"d-flex flex-row align-items-center"
+							).append(
+									$("<input>").attr({type: "checkbox", name: id, id: id}),
+									$("<label>").attr({for: id}).text(label),
+								)
+							),
+						)
+					),
+					$("<div>").addClass("row").append(
+						$("<div>").addClass("d-none col-md-3 d-md-flex justify-content-end align-items-center").append(
+							$("<label>").attr({for: "tadd_label"}).text(theUILang.Label + ": "),
+						),
+						$("<div>").addClass("col-md-7 d-flex flex-row align-items-center").append(
+							$("<input>").attr({type: "text", id: "tadd_label", name: "tadd_label", placeholder: theUILang.Label}).addClass("flex-grow-1"),
+							$("<select>").attr({id: "tadd_label_select"}).addClass("flex-grow-1"),
+						),
+						$("<div>").addClass("col-md-2 d-flex align-items-center").append(
+							$("<button>").attr({type: "button", id: "tadd-return-select", name: "tadd-return-select"}).text(theUILang.Return_select_label),
+						),
+					),
+				),
+				$("<fieldset>").append(
+					$("<legend>").text(theUILang.Add_from_file),
+					$("<div>").addClass("row").append(
+						$("<div>").addClass("d-none col-md-3 d-md-flex justify-content-end align-items-center").append(
+							$("<label>").attr({for: "torrent_file"}).text(theUILang.Torrent_file + ": "),
+						),
+						$("<div>").addClass("col-md-6 d-flex").append(
+							$("<input>")
+								.attr({type: "file", multiple: "multiple", name: "torrent_file[]", id: "torrent_file", accept: ".torrent"})
+								.on("change", (ev) => {$("#add_button").prop("disabled", ev.target.files.length === 0);})
+								.addClass("flex-shrink-1"),
+						),
+						$("<div>").addClass("col-md-3 d-flex align-items-center").append(
+							$("<input>").val(theUILang.add_button).attr({type: "submit", id: "add_button"}).addClass("Button").prop("disabled", true),
+						),
+					),
+				),
+			),
+			$("<form>").attr(
+				{action: "addtorrent.php", id: "addtorrenturl", method: "post", target: "uploadfrmurl"}
+			).append(
+				$("<fieldset>").append(
+					$("<legend>").text(theUILang.Add_from_URL),
+					$("<div>").addClass("row").append(
+						$("<div>").addClass("d-none col-md-3 d-md-flex justify-content-end align-items-center").append(
+							$("<label>").attr({for: "url"}).text(theUILang.Torrent_URL + ": "),
+						),
+						$("<div>").addClass("col-md-6 d-flex").append(
+							$("<input>")
+								.attr({type: "text", id: "url", name: "url", placeholder: theUILang.Torrent_URL})
+								.on("input", (ev) => {$('#add_url').prop('disabled', ev.target.value.trim() === '');})
+								.addClass("flex-grow-1"),
+						),
+						$("<div>").addClass("col-md-3 d-flex align-items-center").append(
+							$("<input>").val(theUILang.add_url).attr({type: "submit", id: "add_url"}).addClass("Button").prop("disabled", true),
+						),
+					),
+				),
+			),
+		),
+  );
+
+	$("#tadd_label_select").on('change', function(e) {
+		const index = this.selectedIndex;
+		switch (index) {
+			case 1: {
 				$(this).hide();
 				$("#tadd_label").show();
-			}
-			case 0:
-			{
+				$("#tadd-return-select").show();
+			} break;
+			case 0: {
 				$("#tadd_label").val("");
-				break;
-			}
-			default:
-			{
+			} break;
+			default: {
 				$("#tadd_label").val(this.options[index].value);
-				break;
-			}
+			} break;
 		}
+	});
+
+	$("#tadd-return-select").on("click", function(e) {
+		$(this).hide();
+		$("#tadd_label").val("").hide();
+		$("#tadd_label_select").prop("selectedIndex", 0);
+		$("#tadd_label_select").show();
 	});
 
 	theDialogManager.setHandler('tadd','beforeShow',function()
 	{
 		$("#tadd_label").hide();
+		$("#tadd-return-select").hide();
 		$("#tadd_label_select").empty()
 			.append('<option selected>'+theUILang.No_label+'</option>')
 			.append('<option>'+theUILang.newLabel+'</option>').show();
 		for(const [torrentLabel] of theWebUI.categoryList.torrentLabelTree.torrentLabels)
 			$("#tadd_label_select").append("<option>"+torrentLabel+"</option>");
-		$("#add_button").prop("disabled",false);
+		$("#torrent_file").val("");
+		$("#add_button").prop("disabled", true);
 		$("#tadd_label_select").trigger('change');
 	});
 
-	var input = $$('url');
-	input.onupdate = input.onkeyup = function() { $('#add_url').prop('disabled',input.value.trim()==''); };
-	input.onpaste = function() { setTimeout( input.onupdate, 10 ) };
-	var makeAddRequest = function(frm)
-	{
+	var makeAddRequest = function(frm) {
 		var s = theURLs.AddTorrentURL;
 		var req = []
 		if($("#torrents_start_stopped").prop("checked"))
@@ -175,486 +231,514 @@ function makeContent()
 		if(req.length)
 			s+=('?'+req.join('&'));
 		frm.action = s;
-		return(true);
+		return true;
 	}
-	$("#addtorrent").on('submit', function()
-	{
-		if(!$("#torrent_file").val().match(/\.torrent$/i))
-		{
+	$("#addtorrent").on('submit', function() {
+		if (!$("#torrent_file").val().match(/\.torrent$/i)) {
 			alert(theUILang.Not_torrent_file);
-	   		return(false);
+	   		return false;
    		}
-		$("#add_button").prop("disabled",true);
-		return(makeAddRequest(this));
+		$("#add_button").prop("disabled", true);
+		return makeAddRequest(this);
 	});
-	$("#addtorrenturl").on('submit', function()
-	{
-	   	$("#add_url").prop("disabled",true);
-	   	return(makeAddRequest(this));
+	$("#addtorrenturl").on('submit', function() {
+	   	$("#add_url").prop("disabled", true);
+	   	return makeAddRequest(this);
 	});
-	theDialogManager.make("dlgProps",theUILang.Torrent_properties,
-		'<div class="content fxcaret">'+
-			'<fieldset>'+
-				'<legend>'+theUILang.Bandwidth_sett+'</legend>'+
-				'<div><input type="text" id="prop-ulslots" />'+theUILang.Number_ul_slots+':</div>'+
-				'<div style="clear:right"><input type="text" id="prop-peers_min" />'+theUILang.Number_Peers_min+':</div>'+
-				'<div style="clear:right"><input type="text" id="prop-peers_max" />'+theUILang.Number_Peers_max+':</div>'+
-				'<div style="clear:right"><input type="text" id="prop-tracker_numwant" />'+theUILang.Tracker_Numwant+':</div>'+
-				'<div class="props-spacer">'+
-					'<input type="checkbox" id="prop-pex" /><label for="prop-pex" id="lbl_prop-pex">'+theUILang.Peer_ex+'</label>'+
-					'<input type="checkbox" id="prop-superseed" /><label for="prop-superseed" id="lbl_prop-superseed">'+theUILang.SuperSeed+'</label>'+
-				'</div>'+
-			'</fieldset>'+
-		'</div>'+
-		'<div class="aright buttons-list"><input type="button" value="'+theUILang.ok+'" class="OK Button" onclick="theWebUI.setProperties(); return(false);" /><input type="button" value="'+theUILang.Cancel+'" class="Cancel Button"/></div>',
-		true);
-	theDialogManager.make("dlgHelp",theUILang.Help,
-		'<div class="content">'+
-				'<table width=100% border=0>'+
-					'<tr><td><strong>F1</strong></td><td>'+theUILang.This_screen+'</td></tr>'+
-					'<tr><td><strong><strong>Ctrl-F1</strong></td><td><a href="javascript://void();" onclick="theDialogManager.toggle(\'dlgAbout\'); return(false);">'+theUILang.About_program+'</a></td></tr>'+
-					'<tr><td><strong><strong>F4</strong></td><td><a href="javascript://void();" onclick="theWebUI.toggleMenu(); return(false);">'+theUILang.Toggle_menu+'</a></td></tr>'+
-					'<tr><td><strong><strong>F6</strong></td><td><a href="javascript://void();" onclick="theWebUI.toggleDetails(); return(false);">'+theUILang.Toggle_details+'</a></td></tr>'+
-					'<tr><td><strong><strong>F7</strong></td><td><a href="javascript://void();" onclick="theWebUI.toggleCategories(); return(false);">'+theUILang.Toggle_categories+'</a></td></tr>'+
-					'<tr><td><strong><strong>Ctrl-O</strong></td><td><a href="javascript://void();" onclick="theWebUI.showAdd(); return(false);">'+theUILang.torrent_add+'</a></td></tr>'+
-					'<tr><td><strong><strong>Ctrl-P</strong></td><td><a href="javascript://void();" onclick="theWebUI.showSettings(); return(false);">'+theUILang.ruTorrent_settings+'</a></td></tr>'+
-					'<tr><td><strong><strong>Del</strong></td><td>'+theUILang.Delete_current_torrents+'</td></tr>'+
-					'<tr><td><strong><strong>Ctrl-A</strong></td><td>'+theUILang.Select_all+'</td></tr>'+
-					'<tr><td><strong><strong>Ctrl-Z</strong></td><td>'+theUILang.Deselect_all+'</td></tr>'+
-				'</table>'+
-		'</div>');
-	theDialogManager.make("dlgAbout","ruTorrent v"+theWebUI.version,
-		'<div class="content"> <strong>'+theUILang.Developers+'</strong>:<br/><br/>'+
-			'&nbsp;&nbsp;&nbsp;Original &micro;Torrent WebUI:<br/>'+
-			'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Carsten Niebuhr (Directrix)<br/><br/>'+
-			'&nbsp;&nbsp;&nbsp;rTorrent adaptation (ruTorrent):<br/>'+
-			'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Moskalets Alexander (<a href="mailto:novik65@gmail.com">Novik</a>)<br/>'+
-			'<br/>'+
-			'<strong>'+theUILang.Check_new_version+'&nbsp;<a href="https://github.com/Novik/ruTorrent" target=_blank>'+theUILang.here+'</a></strong><br/>'+
-		'</div>');
-	theDialogManager.make("dlgLabel",theUILang.enterLabel,
-		'<div class="content fxcaret">'+theUILang.Enter_label_prom+':<br/>'+
-			'<input type="text" id="txtLabel" class="Textbox"/></div>'+
-		'<div class="aright buttons-list"><input type="button" class="OK Button" value="'+theUILang.ok+'" onclick="theWebUI.createLabel();theDialogManager.hide(\'dlgLabel\');return(false);" />'+
-			'<input type="button" class="Cancel Button" value="'+theUILang.Cancel+'"/></div>',
-		true);
-	theDialogManager.setHandler('dlgLabel','afterShow',function()
-	{
-		setTimeout(function(){
+
+	const dlgPropsContent = $("<div>").addClass("cont fxcaret").append(
+		$("<fieldset>").append(
+			$("<legend>").text(theUILang.Bandwidth_sett),
+			$("<div>").addClass("row").append(
+				...[
+					["prop-ulslots", theUILang.Number_ul_slots],
+					["prop-peers_min", theUILang.Number_Peers_min],
+					["prop-peers_max", theUILang.Number_Peers_max],
+					["prop-tracker_numwant", theUILang.Tracker_Numwant],
+				].flatMap(([id, text]) => [
+					$("<div>").addClass("col-12 col-md-6").append(
+						$("<label>").attr({for:id}).text(text + ": "),
+					),
+					$("<div>").addClass("col-12 col-md-6").append(
+						$("<input>").attr({type:"text", id:id,})
+					),
+				]),
+				...[
+					["prop-pex", theUILang.Peer_ex],
+					["prop-superseed", theUILang.SuperSeed],
+				].map(([id, text]) => $("<div>").addClass("col-12 col-md-6").append(
+					$("<input>").attr({type:"checkbox", id:id}),
+					$("<label>").attr({for:id, id:`lbl_${id}`}).text(text),
+				)),
+			),
+		),
+	);
+	const dlgPropsButtons = $("<div>").addClass("buttons-list").append(
+		$("<button>").attr({type:"button"}).addClass("OK").on("click", () => {theWebUI.setProperties(); return false;}).text(theUILang.ok),
+		$("<button>").attr({type:"button"}).addClass("Cancel").text(theUILang.Cancel),
+	);
+	theDialogManager.make("dlgProps", theUILang.Torrent_properties,
+		[dlgPropsContent, dlgPropsButtons],
+		true,
+	);
+	theDialogManager.make("dlgHelp", theUILang.Help,
+		$("<div>").addClass("py-2 container-fluid").append(
+			$("<div>").addClass("row").append(
+				...[
+					["F1", theUILang.This_screen,],
+					["Ctrl-F1", theUILang.About_program, 'theDialogManager.toggle("dlgAbout"); return(false);'],
+					["F4", theUILang.Toggle_menu, "theWebUI.toggleMenu(); return(false);"],
+					["F6", theUILang.Toggle_details, "theWebUI.toggleDetails(); return(false);"],
+					["F7", theUILang.Toggle_categories, "theWebUI.toggleCategories(); return(false);"],
+					["Ctrl-O", theUILang.torrent_add, "theWebUI.showAdd(); return(false);"],
+					["Ctrl-P", theUILang.ruTorrent_settings, "theWebUI.showSettings(); return(false);"],
+					["Ctrl-F", theUILang.Quick_search,],
+					["Del", theUILang.Delete_current_torrents,],
+					["Ctrl-A", theUILang.Select_all,],
+					["Ctrl-Z", theUILang.Deselect_all,],
+				].flatMap(([keyboard, text, action]) => [
+					$("<div>").addClass("col-4").append(
+						$("<span>").addClass("fw-bold").text(keyboard),
+					),
+					$("<div>").addClass("col-8").append(
+						action ?
+						$("<a>").attr({href:"#", onclick:action}).text(text) :
+						$("<span>").text(text)
+					),
+				]),
+			),
+		),
+	);
+	theDialogManager.make("dlgAbout", "ruTorrent v" + theWebUI.version,
+		$("<div>").addClass("py-2 container-fluid").append(
+			$("<div>").addClass("row").append(
+				$("<div>").addClass("col-12 pb-3").append(
+					$("<strong>").text(theUILang.Developers + ": "),
+				),
+				$("<div>").addClass("col-11 offset-1").append(
+					$("<span>").text(theUILang.Original_webui + ": "),
+				),
+				$("<div>").addClass("col-10 offset-2").append(
+					$("<span>").text("Carsten Niebuhr (Directrix)"),
+				),
+				$("<div>").addClass("col-11 offset-1").append(
+					$("<span>").text(theUILang.rTorrent_adaption + ": "),
+				),
+				$("<div>").addClass("col-10 offset-2").append(
+					$("<span>").text("Moskalets Alexander ("),
+					$("<a>").attr({href:"mailto:novik65@gmail.com"}).text("Novik"),
+					$("<span>").text(")")
+				),
+				$("<div>").addClass("pt-3 col-12").append(
+					$("<strong>").text(theUILang.Check_new_version),
+					$("<span>").html("&nbsp;"),
+					$("<a>").attr({href:"https://github.com/Novik/ruTorrent", target:"_blank"}).text(theUILang.here),
+				),
+			),
+		),
+	);
+
+	const dlgLabelContent = $("<div>").addClass("cont fxcaret").append(
+		$("<div>").addClass("row").append(
+			$("<div>").addClass("col-12").append(
+				$("<label>").attr({for:"txtLabel"}).text(theUILang.Enter_label_prom + ": "),
+			),
+			$("<div>").addClass("col-12").append(
+				$("<input>").attr({type:"text", id:"txtLabel"}),
+			),
+		),
+	);
+	const dlgLabelButtons = $("<div>").addClass("buttons-list").append(
+		$("<button>").attr({type:"button"}).addClass("OK").on("click", () => {theWebUI.createLabel(); theDialogManager.hide('dlgLabel'); return false;}).text(theUILang.ok),
+		$("<button>").attr({type:"button"}).addClass("Cancel").text(theUILang.Cancel),
+	);
+	theDialogManager.make("dlgLabel", theUILang.enterLabel,
+		[dlgLabelContent, dlgLabelButtons],
+		true,
+	);
+	theDialogManager.setHandler('dlgLabel', 'afterShow', function() {
+		setTimeout(function() {
 			$("#txtLabel").off('focus').on('focus',function() { 
 				$(this).select(); 
 			}).trigger('focus');		
 		}, 0);
 	});
 	theDialogManager.make("yesnoDlg","",
-		'<div class="content" id="yesnoDlg-content"></div>'+
-		'<div id="yesnoDlg-buttons" class="aright buttons-list"><input type="button" class="OK Button" value="'+theUILang.ok+'" id="yesnoOK">'+
-		'<input type="button" class="Button Cancel" value="'+theUILang.Cancel+'" id="yesnoCancel"></div>',
-		true);
-	var languages = '';
-	for (var i in AvailableLanguages)
-		languages+="<option value='"+i+"'>"+AvailableLanguages[i]+"</option>";
-	var retries = '';
-	for (var i in theUILang.retryOnErrorList)
-		retries+="<option value='"+i+"'>"+theUILang.retryOnErrorList[i]+"</option>";
+		[
+			$("<div>").attr({id:"yesnoDlg-content"}).addClass("cont"),
+			$("<div>").attr({id:"yesnoDlg-buttons"}).addClass("buttons-list").append(
+				$("<button>").attr({type:"button", id:"yesnoOK"}).addClass("OK").text(theUILang.ok),
+				$("<button>").attr({type:"button", id:"yesnoCancel"}).addClass("Cancel").text(theUILang.Cancel),
+			),
+		],
+		true,
+	);
+
+	const stgPanel = $("<div>").addClass("lm").append(
+		$("<ul>").append(
+			...[
+				["st_gl", theUILang.General, true],
+				["st_dl", theUILang.Downloads],
+				["st_con", theUILang.Connection],
+				["st_bt", theUILang.BitTorrent],
+				["st_fmt", theUILang.Format],
+				["st_ao", theUILang.Advanced],
+			].map(([id, text, defaultFocus]) => $("<li>").attr({id: `hld_${id}`}).append(
+				$("<div>").append(
+					$("<div>"),
+					$("<div>"),
+				),
+				$("<a>").attr(
+					{id: `mnu_${id}`, href: "#", onclick: `theOptionsSwitcher.run('${id}');return(false);`}
+				).addClass(defaultFocus ? "focus" : "").text(text),
+			)),
+		),
+	);
+
+	const stgGlCont = $("<div>").attr({id: "st_gl"}).addClass("stg_con").append(
+		$("<fieldset>").append(
+			$("<legend>").text(theUILang.User_Interface),
+			$("<div>").addClass("row").append(
+				...[
+					['webui.confirm_when_deleting', theUILang.Confirm_del_torr],
+					['webui.alternate_color', theUILang.Alt_list_bckgnd],
+					['webui.ignore_timeouts', theUILang.dontShowTimeouts],
+					['webui.fullrows', theUILang.fullTableRender],
+					['webui.no_delaying_draw', theUILang.showScrollTables],
+					['webui.log_autoswitch', theUILang.logAutoSwitch],
+					['webui.register_magnet', theUILang.registerMagnet],
+					['webui.show_cats', theUILang.Show_cat_start],
+					['webui.show_dets', theUILang.Show_det_start],
+					['webui.open_tegs.keep', theUILang.KeepSearches],
+					['webui.selected_tab.keep', theUILang.KeepSelectedTab],
+					['webui.selected_labels.keep', theUILang.KeepSelectedLabels],
+					['webui.effects', theUILang.UIEffects],
+					['webui.speedintitle', theUILang.showSpeedInTitle],
+				].map(([id, label]) => $("<div>").addClass("col-md-6").append(
+					$("<input>").attr({type: "checkbox", id: id}),
+					$("<label>").attr({for: id}).text(label),
+				)),
+				...[
+					['webui.side_panel_min_width', theUILang.sidePanelMinWidth],
+					['webui.list_table_min_height', theUILang.listTableMinHeight],
+				].map(([id, label]) => [
+					$("<div>").addClass("col-12 col-md-6").append(
+						$("<label>").attr({for:id}).text(label),
+					),
+					$("<div>").addClass("col-12 col-md-6").append(
+						$("<input>").attr({type:"text", id}),
+					),
+				]),
+				...[
+					["webui.update_interval", theUILang.Update_GUI_every + ": ", theUILang.ms, 3000],
+					["webui.reqtimeout", theUILang.ReqTimeout + ": ", theUILang.ms, 5000],
+				].map(([id, prefix, suffix, value]) => [
+					$("<div>").addClass("col-md-6").append(
+						$('<label>').attr({for: id}).text(prefix),
+					),
+					$("<div>").addClass("col-9 col-md-5").append(
+						$('<input>').attr({type: "number", id: id, value: value, min: 0}).addClass("flex-grow-1"),
+					),
+					$("<div>").addClass("col-3 col-md-1").append(
+						$('<span>').text(suffix),
+					),
+				]),
+				$("<div>").addClass("col-md-6").append(
+					$("<label>").attr({for: "webui.speedgraph.max_seconds"}).text(theUILang.speedGraphDuration + ": "),
+				),
+				$("<div>").addClass("col-md-6").append(
+					$("<select>").attr({id: "webui.speedgraph.max_seconds"}).addClass("flex-grow-1").append(
+						...Object.entries(theUILang.speedGraphDurationOptions).map(([value, text]) => $("<option>").attr({value: value}).text(text),
+					)),
+				),
+				$("<div>").addClass("col-md-6").append(
+					$("<label>").attr({for: "webui.retry_on_error"}).text(theUILang.retryOnErrorTitle + ": "),
+				),
+				$("<div>").addClass("col-md-6").append(
+					$("<select>").attr({id: "webui.retry_on_error"}).append(
+						...Object.entries(theUILang.retryOnErrorList).map(
+							([index, text]) => $("<option>").val(index).text(text)
+						),
+					),
+				),
+				$("<div>").addClass("col-6 col-md-3").append(
+					$("<label>").attr({for: "webui.lang"}).text(theUILang.mnu_lang + ": "),
+				),
+				$("<div>").addClass("col-6 col-md-3").append(
+					$("<select>").attr({id: "webui.lang"}).append(
+						...Object.entries(AvailableLanguages).map(
+							([code, language]) => $("<option>").val(code).text(language)
+						),
+					),
+				),
+			),
+		),
+		$("<fieldset>").append(
+			$("<legend>").text(theUILang.speedList),
+			$("<div>").addClass("row").append(
+				...[
+					["webui.speedlistul", theUILang.UL],
+					["webui.speedlistdl", theUILang.DL],
+				].flatMap(([id, text]) => [
+					$("<div>").addClass("col-md-2").append(
+						$("<label>").attr({for:id}).text(text + ": "),
+					),
+					$("<div>").addClass("col-md-10").append(
+						$("<input>").attr({type:"text", id:id}).prop("maxlength", 128).addClass("speedEdit"),
+					),
+				]),
+			),
+		),
+	);
+
+	const stgDlCont = $("<div>").attr({id: "st_dl"}).addClass("stg_con").append(
+		$("<fieldset>").append(
+			$("<legend>").text(theUILang.Bandwidth_sett),
+			...[
+				[theUILang.Number_ul_slots, "max_uploads"],
+				[theUILang.Number_Peers_min, "min_peers"],
+				[theUILang.Number_Peers_max, "max_peers"],
+				[theUILang.Number_Peers_For_Seeds_min, "min_peers_seed"],
+				[theUILang.Number_Peers_For_Seeds_max, "max_peers_seed"],
+				[theUILang.Tracker_Numwant, "tracker_numwant"],
+			].map(([label, id]) => $("<div>").addClass("row").append(
+				$("<div>").addClass("col-md-6").append(
+					$("<label>").attr({for: id}).text(label + ": "),
+				),
+				$("<div>").addClass("col-md-6").append(
+					$("<input>").attr({type: "text", id: id}).prop("maxlength", 6),
+				),
+			)),
+		),
+		$("<fieldset>").append(
+			$("<legend>").text(theUILang.Other_sett),
+			$("<div>").addClass("row").append(
+				$("<div>").addClass("col-md-6").append(
+					$("<input>").attr({type: "checkbox", id: "check_hash"}),
+					$("<label>").attr({for: "check_hash"}).text(theUILang.Check_hash),
+				),
+			),
+			$("<div>").addClass("row").append(
+				$("<div>").addClass("col-md-6").append(
+					$("<label>").attr({for: "directory"}).text(theUILang.Directory_For_Dl + ": "),
+				),
+				$("<div>").addClass("col-md-6").append(
+					$("<input>").attr({type: "text", id: "directory"}).prop("maxlength", 100),
+				),
+			),
+		),
+	);
+
+	const stgConCont = $("<div>").attr({id: "st_con"}).addClass("stg_con").append(
+		$("<fieldset>").append(
+			$("<legend>").text(theUILang.Listening_Port),
+			$("<div>").addClass("row").append(
+				$("<div>").addClass("col-md-6").append(
+					$("<input>").attr({type: "checkbox", id: "port_open", onclick: "linked(this, 0, ['port_range', 'port_random']);"}),
+					$("<label>").attr({for: "port_open"}).text(theUILang.Enable_port_open),
+				),
+				$("<div>").addClass("col-md-6").append(
+					$("<input>").attr({type: "checkbox", id: "port_random"}),
+					$("<label>").attr({for: "port_random", id: "lbl_port_random"}).text(theUILang.Rnd_port_torr_start),
+				),
+				$("<div>").addClass("col-md-6").append(
+					$("<label>").attr({for: "port_range", id: "lbl_port_range"}).text(theUILang.Port_f_incom_conns + ": "),
+				),
+				$("<div>").addClass("col-md-6").append(
+					$("<input>").attr({type: "text", id: "port_range"}).prop("maxlength", 13),
+				),
+			),
+		),
+		$("<fieldset>").append(
+			$("<legend>").text(theUILang.Bandwidth_Limiting),
+			$("<div>").addClass("row").append(
+				$("<div>").addClass("col-md-8").append(
+					$("<label>").attr({for: "upload_rate"}).text(`${theUILang.Global_max_upl} (${theUILang.KB}/${theUILang.s}): [0: ${theUILang.unlimited}]`),
+				),
+				$("<div>").addClass("col-md-4").append(
+					$("<input>").attr({type: "text", id: "upload_rate"}).prop("maxlength", 6),
+				),
+				$("<div>").addClass("col-md-8").append(
+					$("<label>").attr({for: "download_rate"}).text(`${theUILang.Glob_max_downl} (${theUILang.KB}/${theUILang.s}): [0: ${theUILang.unlimited}]`),
+				),
+				$("<div>").addClass("col-md-4").append(
+					$("<input>").attr({type: "text", id: "download_rate"}).prop("maxlength", 6),
+				),
+			),
+		),
+		$("<fieldset>").append(
+			$("<legend>").text(theUILang.Other_Limiting),
+			...[
+				["max_uploads_global", theUILang.Number_ul_slots],
+				["max_downloads_global", theUILang.Number_dl_slots],
+				["max_memory_usage", theUILang.Glob_max_memory + " (" + theUILang.MB + ")"],
+				["max_open_files", theUILang.Glob_max_files],
+				["max_open_http", theUILang.Glob_max_http],
+			].map(([id, label]) => $("<div>").addClass("row").append(
+				$("<div>").addClass("col-md-8").append(
+					$("<label>").attr({for: id}).text(label + ": "),
+				),
+				$("<div>").addClass("col-md-4").append(
+					$("<input>").attr({type: "number", id: id}).prop("maxlength", 6),
+				),
+			)),
+		),
+	);
+
+	const stgBtCont = $("<div>").attr({id: "st_bt"}).addClass("stg_con").append(
+		$("<fieldset>").append(
+			$("<legend>").text(theUILang.Add_bittor_featrs),
+			$("<div>").addClass("row").append(
+				$("<div>").addClass("col-md-6").append(
+					$("<input>").attr({type: "checkbox", id: "dht", onchange: "linked(this, 0, ['dht_port']);"}),
+					$("<label>").attr({for: "dht"}).text(theUILang.En_DHT_ntw),
+				),
+				$("<div>").addClass("col-md-6").append(
+					$("<input>").attr({type: "checkbox", id: "peer_exchange"}),
+					$("<label>").attr({for: "peer_exchange"}).text(theUILang.Peer_exch),
+				),
+				$("<div>").addClass("col-md-6").append(
+					$("<label>").attr({id:"lbl_dht_port", for:"dht_port"}).addClass("disabled").text(theUILang.dht_port + ": "),
+				),
+				$("<div>").addClass("col-md-6").append(
+					$("<input>").attr({type:"text", id:"dht_port"}).prop("maxlength", 6).prop("disabled", true),
+				),
+				$("<div>").addClass("col-md-6").append(
+					$("<label>").attr({id:"lbl_ip", for:"ip"}).text(theUILang.Ip_report_track + ": "),
+				),
+				$("<div>").addClass("col-md-6").append(
+					$("<input>").attr({type:"text", id:"ip"}).prop("maxlength", 6),
+				),
+			),
+		),
+	);
+
+	const stgFmtCont = $("<div>").attr({id: "st_fmt"}).addClass("stg_con").append(
+		$("<fieldset>").append(
+			$("<legend>").text(theUILang.Format),
+			$("<div>").addClass("row").append(
+				$("<div>").addClass("col-md-6").append(
+					$("<label>").attr({for: "webui.dateformat"}).addClass("flex-shrink-0").text(theUILang.DateFormat + ": "),
+					$("<select>").attr({ id: "webui.dateformat"}).addClass("flex-shrink-1").append(
+						...Object.entries({0: "31.12.2011", 1: "2011-12-31", 2: "12/31/2011"}).map(
+							([value, text]) => $("<option>").val(value).text(text)
+						),
+					),
+				),
+				...[
+					['webui.show_viewlabelsize', theUILang.showViewLabelSize],
+					['webui.show_statelabelsize', theUILang.showStateLabelSize],
+					['webui.show_labelsize', theUILang.showLabelSize],
+					['webui.show_searchlabelsize', theUILang.showSearchLabelSize],
+					['webui.labelsize_rightalign', theUILang.labelSizeRightAlign],
+					['webui.show_label_path_tree', theUILang.showCustomLabelTree],
+					['webui.show_empty_path_labels', theUILang.showEmptyPathLabel],
+					['webui.show_label_text_overflow', theUILang.showLabelTextOverflow],
+					['webui.show_open_status', theUILang.showOpenStatus],
+					['webui.show_view_panel', theUILang.showViewPanel],
+				].map(([id, label]) => $("<div>").addClass("col-md-6").append(
+					$("<input>").attr({type: "checkbox", id: id, checked: "true"}),
+					$("<label>").attr({for: id, id: "lbl_" + id}).text(label),
+				)),
+			),
+		),
+		$("<fieldset>").append(
+			$("<legend>").text(theUILang.DecimalPlacesSizes),
+			$("<div>").attr({id:"decimalDigitEdit"}).addClass("row").append(
+				$("<div>").addClass("col-12 overflow-x-auto").append(
+					$("<table>").append(
+						$("<thead>").append(
+							$("<tr>").append(
+								...[
+									"", "Default", "KB", "MB", "GB", "TB", "PB",
+								].map((unit) => $("<th>").text(theUILang[unit] ?? "")),
+							),
+						),
+						$("<tbody>").append(
+							...Object.entries({
+								catlist: theUILang.CatListSizeDecimalPlaces,
+								table: theUILang.TableSizeDecimalPlaces,
+								details: theUILang.DetailsSizeDecimalPlaces,
+								other: theUILang.OtherSizeDecimalPlaces,
+							}).map(([context, name]) => $('<tr>').append(
+								$("<td>").text(name + ": "),
+								...["default", "kb", "mb", "gb", "tb", "pb"].map(unit => $("<td>").append(
+									$("<input>").attr({
+										type: "number",
+										id: "webui.size_decimal_places." + context + "." + unit,
+										maxlength: 1,
+										min: 0,
+									}),
+								)),
+							)),
+						),
+					),
+				),
+			),
+		),
+	);
+
+	const stgAoCont = $("<div>").attr({id: "st_ao"}).addClass("stg_con").append(
+		$("<fieldset>").append(
+			$("<legend>").text(theUILang.Advanced),
+			$("<div>").attr({id: "st_ao_h"}).append(
+				...[
+					["hash_interval", 20], ["hash_max_tries", 5], ["hash_read_ahead", 20],
+					["http_cacert", 100], ["http_capath", 100],
+					["max_downloads_div", 5], ["max_uploads_div", 5], ["max_file_size", 20],
+				].map(([id, maxlength]) => $("<div>").addClass("row").append(
+					$("<div>").addClass("col-md-6").append(
+						$("<label>").attr({for: id}).text(id),
+					), 
+					$("<div>").addClass("col-md-6").append(
+						$("<input>").attr({type: "text", id: id}).prop("maxlength", maxlength),
+					),
+				)),
+				$("<div>").addClass("row").append(
+					$("<div>").addClass("col-md-6").append(
+						$("<label>").attr({for: "preload_type"}).text("preload_type"),
+					),
+					$("<div>").addClass("col-md-6").append(
+						$("<select>").attr({id: "preload_type"}).append(
+							$("<option>").val(0).text("off"),
+							$("<option>").val(1).text("madvise"),
+							$("<option>").val(2).text("direct paging"),
+						),
+					),
+				),
+				...[
+					["preload_min_size", 20], ["preload_required_rate", 20],
+					["receive_buffer_size", 20], ["send_buffer_size", 20],
+					["safe_sync", ], ["timeout_safe_sync", 20], ["timeout_sync", 20], ["scgi_dont_route", ],
+					["session", 100], ["session_lock", ], ["session_on_completion",],
+					["split_file_size", 20], ["split_suffix", 100], ["use_udp_trackers", ],
+					["http_proxy", 100], ["proxy_address", 100], ["bind", 100],
+				].map(([id, maxlength]) => $("<div>").addClass("row").append(
+					$("<div>").addClass("col-md-6").append(
+						$("<label>").attr({for: id}).text(id),
+					),
+					$("<div>").addClass("col-md-6").append(
+						maxlength ?
+						$("<input>").attr({type: "text", id: id}).prop("maxlength", maxlength) :
+						$("<input>").attr({type: "checkbox", id: id}),
+					),
+				)),
+			),
+		),
+	);
+
 	theDialogManager.make("stg",theUILang.ruTorrent_settings,
-		'<div id="stg_c" class="fxcaret">'+
-			"<div class=\"lm\">"+
-				"<ul>"+
-					"<li class=\"first\"><a id=\"mnu_st_gl\" href=\"javascript://void();\" onclick=\"theOptionsSwitcher.run(\'st_gl\'); return(false);\" class=\"focus\">"+
-						theUILang.General+
-					"</a></li>"+
-					"<li id='hld_st_dl'><a id=\"mnu_st_dl\" href=\"javascript://void();\" onclick=\"theOptionsSwitcher.run(\'st_dl\'); return(false);\">"+
-						theUILang.Downloads+
-					"</a></li>"+
-					"<li id='hld_st_con'><a id=\"mnu_st_con\" href=\"javascript://void();\" onclick=\"theOptionsSwitcher.run(\'st_con\'); return(false);\">"+
-						theUILang.Connection+
-					"</a></li>"+
-					"<li id='hld_st_bt'><a id=\"mnu_st_bt\" href=\"javascript://void();\" onclick=\"theOptionsSwitcher.run(\'st_bt\'); return(false);\">"+
-						theUILang.BitTorrent+
-					"</a></li>"+
-					"<li  id='hld_st_fmt' ><a id=\"mnu_st_fmt\" href=\"javascript://void();\" onclick=\"theOptionsSwitcher.run(\'st_fmt\'); return(false);\">"+
-						theUILang.Format+
-					"</a></li>"+
-					"<li  id='hld_st_ao' class=\"last\"><a id=\"mnu_st_ao\" href=\"javascript://void();\" onclick=\"theOptionsSwitcher.run(\'st_ao\'); return(false);\">"+
-						theUILang.Advanced+
-					"</a></li>"+
-				"</ul>"+
-			"</div>"+
-			"<div id=\"st_gl\" class=\"stg_con\">"+
-				"<fieldset>"+
-					"<legend>"+theUILang.User_Interface+"</legend>"+
-					$('<div>').addClass('optionColumn userInterfaceOptions').append(
-						...[
-							['webui.confirm_when_deleting', theUILang.Confirm_del_torr],
-							['webui.alternate_color', theUILang.Alt_list_bckgnd],
-							['webui.ignore_timeouts', theUILang.dontShowTimeouts],
-							['webui.fullrows', theUILang.fullTableRender],
-							['webui.no_delaying_draw', theUILang.showScrollTables],
-							['webui.log_autoswitch', theUILang.logAutoSwitch],
-							['webui.register_magnet', theUILang.registerMagnet],
-							['webui.show_cats', theUILang.Show_cat_start],
-							['webui.show_dets', theUILang.Show_det_start],
-							['webui.open_tegs.keep', theUILang.KeepSearches],
-							['webui.selected_tab.keep', theUILang.KeepSelectedTab],
-							['webui.selected_labels.keep', theUILang.KeepSelectedLabels],
-							['webui.effects', theUILang.UIEffects],
-							['webui.speedintitle', theUILang.showSpeedInTitle],
-						].map(([id, label]) =>
-						$('<div>').append(
-							$('<input>').attr({ type: 'checkbox', id, checked: 'true' }),
-							$('<label>').attr({ for: id }).text(label)
-						)))[0].outerHTML +
-					$('<div>').addClass('optionColumn').append(
-						...[
-							['webui.update_interval', theUILang.Update_GUI_every +':', theUILang.ms, 3000],
-							['webui.reqtimeout', theUILang.ReqTimeout +':', theUILang.ms, 5000],
-						].map(([id, prefix, suffix, value]) =>
-							$('<div>').append(
-								$('<span>').text(prefix),
-								$('<input>').attr({type: 'number', id, value, min: 0 }),
-								$('<span>').text(suffix),
-						)),
-					$('<div>').append(
-						$('<label>').attr({ for: 'webui.speedgraph.max_seconds' }).text(theUILang.speedGraphDuration),
-						$('<select>').attr({ id: 'webui.speedgraph.max_seconds' }).append(
-							...Object.entries(theUILang.speedGraphDurationOptions).map(([value, text]) =>
-								$('<option>').attr({ value }).text(text)
-					))))[0].outerHTML+
-					"<div class=\"op100l\">"+
-						"<label for=\"webui.retry_on_error\">"+theUILang.retryOnErrorTitle+":</label>&nbsp;"+
-						"<select id=\"webui.retry_on_error\">"+
-							retries+
-						"</select>"+
-					"</div>"+
-					"<div class=\"op50l\">"+
-						"<label for=\"webui.lang\">"+theUILang.mnu_lang+":</label>&nbsp;"+
-						"<select id=\"webui.lang\">"+
-							languages+
-						"</select>"+
-					"</div>"+
-				"</fieldset>"+
-				"<fieldset>"+
-					"<legend>"+theUILang.speedList+"</legend>"+
-					"<table>"+
-						"<tr>"+
-							"<td>"+theUILang.UL+":</td>"+
-							"<td class=\"alr\"><input type=\"text\" id=\"webui.speedlistul\" class=\"Textbox speedEdit\" maxlength=\"128\" /></td>"+
-						"</tr>"+
-						"<tr>"+
-							"<td>"+theUILang.DL+":</td>"+
-							"<td class=\"alr\"><input type=\"text\" id=\"webui.speedlistdl\" class=\"Textbox speedEdit\" maxlength=\"128\" /></td>"+
-						"</tr>"+
-					"</table>"+
-				"</fieldset>"+
-			"</div>"+
-			"<div id=\"st_dl\" class=\"stg_con\">"+
-				"<fieldset>"+
-					"<legend>"+theUILang.Bandwidth_sett+"</legend>"+
-					"<table>"+
-						"<tr>"+
-							"<td>"+theUILang.Number_ul_slots+":</td>"+
-							"<td class=\"alr\"><input type=\"text\" id=\"max_uploads\" class=\"Textbox num\" maxlength=\"6\" /></td>"+
-						"</tr>"+
-						"<tr>"+
-							"<td>"+theUILang.Number_Peers_min+":</td>"+
-							"<td class=\"alr\"><input type=\"text\" id=\"min_peers\" class=\"Textbox num\" maxlength=\"6\" /></td>"+
-						"</tr>"+
-						"<tr>"+
-							"<td>"+theUILang.Number_Peers_max+":</td>"+
-							"<td class=\"alr\"><input type=\"text\" id=\"max_peers\" class=\"Textbox num\" maxlength=\"6\" /></td>"+
-						"</tr>"+
-						"<tr>"+
-							"<td>"+theUILang.Number_Peers_For_Seeds_min+":</td>"+
-							"<td class=\"alr\"><input type=\"text\" id=\"min_peers_seed\" class=\"Textbox num\" maxlength=\"6\" /></td>"+
-						"</tr>"+
-						"<tr>"+
-							"<td>"+theUILang.Number_Peers_For_Seeds_max+":</td>"+
-							"<td class=\"alr\"><input type=\"text\" id=\"max_peers_seed\" class=\"Textbox num\" maxlength=\"6\" /></td>"+
-						"</tr>"+
-						"<tr>"+
-							"<td>"+theUILang.Tracker_Numwant+":</td>"+
-							"<td class=\"alr\"><input type=\"text\" id=\"tracker_numwant\" class=\"Textbox num\" maxlength=\"6\" /></td>"+
-						"</tr>"+
-					"</table>"+
-				"</fieldset>"+
-				"<fieldset>"+
-					"<legend>"+theUILang.Other_sett+"</legend>"+
-					"<table>"+
-						"<tr>"+
-							"<td><input id=\"check_hash\" type=\"checkbox\"/>"+
-								"<label for=\"check_hash\">"+theUILang.Check_hash+"</label>"+
-							"</td>"+
-						"</tr>"+
-						"<tr>"+
-							"<td>"+theUILang.Directory_For_Dl+":</td>"+
-							"<td class=\"alr\"><input type=\"text\" id=\"directory\" class=\"Textbox str\" maxlength=\"100\" /></td>"+
-						"</tr>"+
-					"</table>"+
-				"</fieldset>"+
-			"</div>"+
-			"<div id=\"st_con\" class=\"stg_con\">"+
-				"<div>"+
-					"<input id=\"port_open\" type=\"checkbox\" onchange=\"linked(this, 0, ['port_range', 'port_random']);\" />"+
-					"<label for=\"port_open\">"+
-						theUILang.Enable_port_open+
-					"</label>"+
-				"</div>"+
-				"<fieldset>"+
-					"<legend>"+theUILang.Listening_Port+"</legend>"+
-					"<table>"+
-						"<tr>"+
-							"<td><label id=\"lbl_port_range\" for=\"port_range\" class=\"disabled\">"+theUILang.Port_f_incom_conns+":</label></td>"+
-							"<td class=\"alr\">"+
-								"<input type=\"text\" id=\"port_range\" class=\"TextboxShort\" class=\"disabled\" maxlength=\"13\" />"+
-							"</td>"+
-						"</tr>"+
-						"<tr>"+
-							"<td colspan=\"2\">"+
-								"<input id=\"port_random\" type=\"checkbox\"  class=\"disabled\"/>"+
-								"<label  id=\"lbl_port_random\" for=\"port_random\"  class=\"disabled\">"+theUILang.Rnd_port_torr_start+"</label>"+
-							"</td>"+
-						"</tr>"+
-					"</table>"+
-				"</fieldset>"+
-				"<fieldset>"+
-					"<legend>"+theUILang.Bandwidth_Limiting+"</legend>"+
-					"<table>"+
-						"<tr>"+
-							"<td>"+theUILang.Global_max_upl+" ("+theUILang.KB + "/" + theUILang.s+"): [0: "+theUILang.unlimited+"]</td>"+
-							"<td class=\"alr\"><input type=\"text\" id=\"upload_rate\" class=\"Textbox num\" maxlength=\"6\" /></td>"+
-						"</tr>"+
-						"<tr>"+
-							"<td>"+theUILang.Glob_max_downl+" ("+theUILang.KB + "/" + theUILang.s+"): [0: "+theUILang.unlimited+"]</td>"+
-							"<td class=\"alr\"><input type=\"text\" id=\"download_rate\" class=\"Textbox num\" maxlength=\"6\" /></td>"+
-						"</tr>"+
-					"</table>"+
-				"</fieldset>"+
-				"<fieldset>"+
-					"<legend>"+theUILang.Other_Limiting+"</legend>"+
-					"<table>"+
-						"<tr>"+
-							"<td>"+theUILang.Number_ul_slots+":</td>"+
-							"<td class=\"alr\"><input type=\"text\" id=\"max_uploads_global\" class=\"Textbox num\" maxlength=\"6\" /></td>"+
-						"</tr>"+
-						"<tr>"+
-							"<td>"+theUILang.Number_dl_slots+":</td>"+
-							"<td class=\"alr\"><input type=\"text\" id=\"max_downloads_global\" class=\"Textbox num\" maxlength=\"6\" /></td>"+
-						"</tr>"+
-						"<tr>"+
-							"<td>"+theUILang.Glob_max_memory+" ("+theUILang.MB+"):</td>"+
-							"<td class=\"alr\"><input type=\"text\" id=\"max_memory_usage\" class=\"Textbox num\" maxlength=\"6\" /></td>"+
-						"</tr>"+
-						"<tr>"+
-							"<td>"+theUILang.Glob_max_files+":</td>"+
-							"<td class=\"alr\"><input type=\"text\" id=\"max_open_files\" class=\"Textbox num\" maxlength=\"6\" /></td>"+
-						"</tr>"+
-						"<tr>"+
-							"<td>"+theUILang.Glob_max_http+":</td>"+
-							"<td class=\"alr\"><input type=\"text\" id=\"max_open_http\" class=\"Textbox num\" maxlength=\"6\" /></td>"+
-						"</tr>"+
-					"</table>"+
-				"</fieldset>"+
-			"</div>"+
-			"<div id=\"st_bt\" class=\"stg_con\">"+
-				"<fieldset>"+
-					"<legend>"+theUILang.Add_bittor_featrs+"</legend>"+
-					"<table>"+
-						"<tr>"+
-							"<td><input id=\"dht\" type=\"checkbox\"  onchange=\"linked(this, 0, ['dht_port']);\" />"+
-								"<label for=\"dht\">"+theUILang.En_DHT_ntw+"</label>"+
-						"</td>"+
-							"<td><input id=\"peer_exchange\" type=\"checkbox\" />"+
-								"<label for=\"peer_exchange\">"+theUILang.Peer_exch+"</label>"+
-							"</td>"+
-						"</tr>"+
-						"<tr>"+
-							"<td id=\"lbl_dht_port\" class=\"disabled\">"+theUILang.dht_port+":</td>"+
-							"<td><input type=\"text\" id=\"dht_port\" class=\"Textbox num\" maxlength=\"6\" class=\"disabled\"/></td>"+
-						"</tr>"+
-						"<tr>"+
-							"<td>"+theUILang.Ip_report_track+":</td>"+
-							"<td><input type=\"text\" id=\"ip\" class=\"Textbox str\" maxlength=\"50\" /></td>"+
-						"</tr>"+
-					"</table>"+
-				"</fieldset>"+
-			"</div>"+
-			"<div id=\"st_fmt\" class=\"stg_con\">"+
-				"<fieldset>"+
-					"<legend>"+theUILang.Format+"</legend>"+
-					$('<div>').addClass('optionColumn userInterfaceOptions').append(
-						$('<div>').append(
-							$('<label>').attr({ for: 'webui.dateformat' }).text(theUILang.DateFormat),
-							$('<select>').attr({ id: 'webui.dateformat' }).css({ width: '7em' }).append(
-								...Object.entries({0: '31.12.2011', 1: '2011-12-31', 2: '12/31/2011' }).map(([value, text]) =>
-									$('<option>').attr({ value }).text(text)
-						))),
-						...[
-							['webui.show_viewlabelsize', theUILang.showViewLabelSize],
-							['webui.show_statelabelsize', theUILang.showStateLabelSize],
-							['webui.show_labelsize', theUILang.showLabelSize],
-							['webui.show_searchlabelsize', theUILang.showSearchLabelSize],
-							['webui.labelsize_rightalign', theUILang.labelSizeRightAlign],
-							['webui.show_label_path_tree', theUILang.showCustomLabelTree],
-							['webui.show_empty_path_labels', theUILang.showEmptyPathLabel],
-							['webui.show_label_text_overflow', theUILang.showLabelTextOverflow],
-							['webui.show_open_status', theUILang.showOpenStatus],
-							['webui.show_view_panel', theUILang.showViewPanel],
-						].map(([id, label]) =>
-						$('<div>').append(
-							$('<input>').attr({ type: 'checkbox', id, checked: 'true' }),
-							$('<label>').attr({ for: id, id: 'lbl_'+id }).text(label)
-						)))[0].outerHTML +
-				"</fieldset>"+
-				"<fieldset>"+
-					"<legend>"+theUILang.DecimalPlacesSizes+"</legend>"+
-					$('<table>').append(
-						$('<tr>').append(...[ '', 'Default', 'KB', 'MB', 'GB', 'TB', 'PB'].map((unit) =>
-							$('<th>').text(unit !== '' ? theUILang[unit] : ''))
-						),...Object.entries({
-							catlist: theUILang.CatListSizeDecimalPlaces,
-							table: theUILang.TableSizeDecimalPlaces,
-							details: theUILang.DetailsSizeDecimalPlaces,
-							other: theUILang.OtherSizeDecimalPlaces,
-						}).map(([context, name]) =>
-							$('<tr>').append(...
-								$('<th>').text(name),
-								...['default', 'kb', 'mb', 'gb', 'tb', 'pb'].map(unit =>
-									$('<td>').append(
-											$('<input>')
-												.attr({
-													type: 'number',
-													id: 'webui.size_decimal_places.' + context + '.' + unit,
-													maxlength: 1,
-													min: 0,
-												}).addClass('Textbox')
-					))))).addClass('decimalDigitEdit')[0].outerHTML+
-				"</fieldset>"+
-			"</div>"+
-			"<div id=\"st_ao\" class=\"stg_con\">"+
-				"<fieldset>"+
-					"<legend>"+theUILang.Advanced+"</legend>"+
-					"<div id=\"st_ao_h\">"+
-						"<table width=\"99%\" cellpadding=\"0\" cellspacing=\"0\">"+
-							"<tr>"+
-								"<td>hash_interval</td>"+
-								"<td class=\"alr\"><input type=\"text\" id=\"hash_interval\" class=\"Textbox num\" maxlength=\"20\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td>hash_max_tries</td>"+
-								"<td class=\"alr\"><input type=\"text\" id=\"hash_max_tries\" class=\"Textbox num\" maxlength=\"5\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td>hash_read_ahead</td>"+
-								"<td class=\"alr\"><input type=\"text\" id=\"hash_read_ahead\" class=\"Textbox num\" maxlength=\"20\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td>http_cacert</td>"+
-								"<td class=\"alr\"><input type=\"text\" id=\"http_cacert\" class=\"Textbox str\" maxlength=\"100\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td>http_capath</td>"+
-								"<td class=\"alr\"><input type=\"text\" id=\"http_capath\" class=\"Textbox str\" maxlength=\"100\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td>max_downloads_div</td>"+
-								"<td class=\"alr\"><input type=\"text\" id=\"max_downloads_div\" class=\"Textbox num\" maxlength=\"5\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td>max_uploads_div</td>"+
-								"<td class=\"alr\"><input type=\"text\" id=\"max_uploads_div\" class=\"Textbox num\" maxlength=\"5\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td>max_file_size</td>"+
-								"<td class=\"alr\"><input type=\"text\" id=\"max_file_size\" class=\"Textbox num\" maxlength=\"20\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td>preload_type</td>"+
-								"<td class=\"alr\">"+
-									"<select id=\"preload_type\">"+
-										"<option value=\"0\" selected=\"selected\">off</option>"+
-										"<option value=\"1\">madvise</option>"+
-										"<option value=\"2\">direct paging</option>"+
-									"</select>"+
-								"</td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td>preload_min_size</td>"+
-								"<td class=\"alr\"><input type=\"text\" id=\"preload_min_size\" class=\"Textbox num\" maxlength=\"20\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td>preload_required_rate</td>"+
-								"<td class=\"alr\"><input type=\"text\" id=\"preload_required_rate\" class=\"Textbox num\" maxlength=\"20\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td>receive_buffer_size</td>"+
-								"<td class=\"alr\"><input type=\"text\" id=\"receive_buffer_size\" class=\"Textbox num\" maxlength=\"20\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td>send_buffer_size</td>"+
-								"<td class=\"alr\"><input type=\"text\" id=\"send_buffer_size\" class=\"Textbox num\" maxlength=\"20\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td><label for=\"safe_sync\">safe_sync</label></td>"+
-								"<td class=\"alr\"><input type=\"checkbox\" id=\"safe_sync\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td>timeout_safe_sync</td>"+
-								"<td class=\"alr\"><input type=\"text\" id=\"timeout_safe_sync\" class=\"Textbox num\" maxlength=\"20\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td>timeout_sync</td>"+
-								"<td class=\"alr\"><input type=\"text\" id=\"timeout_sync\" class=\"Textbox num\" maxlength=\"20\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td><label for=\"scgi_dont_route\">scgi_dont_route</label></td>"+
-								"<td class=\"alr\"><input type=\"checkbox\" id=\"scgi_dont_route\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td>session</td>"+
-								"<td class=\"alr\"><input type=\"text\" id=\"session\" class=\"Textbox str\" maxlength=\"100\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td><label for=\"session_lock\">session_lock</label></td>"+
-								"<td class=\"alr\"><input type=\"checkbox\" id=\"session_lock\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td><label for=\"session_on_completion\">session_on_completion</label></td>"+
-								"<td class=\"alr\"><input type=\"checkbox\" id=\"session_on_completion\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td>split_file_size</td>"+
-								"<td class=\"alr\"><input type=\"text\" id=\"split_file_size\" class=\"Textbox num\" maxlength=\"20\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td>split_suffix</td>"+
-								"<td class=\"alr\"><input type=\"text\" id=\"split_suffix\" class=\"Textbox str\" maxlength=\"100\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td><label for=\"use_udp_trackers\">use_udp_trackers</label></td>"+
-								"<td class=\"alr\"><input type=\"checkbox\" id=\"use_udp_trackers\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td>http_proxy</td>"+
-								"<td class=\"alr\"><input type=\"text\" id=\"http_proxy\" class=\"Textbox str\" maxlength=\"100\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td>proxy_address</td>"+
-								"<td class=\"alr\"><input type=\"text\" id=\"proxy_address\" class=\"Textbox str\" maxlength=\"100\" /></td>"+
-							"</tr>"+
-							"<tr>"+
-								"<td>bind</td>"+
-								"<td class=\"alr\"><input type=\"text\" id=\"bind\" class=\"Textbox str\" maxlength=\"100\" /></td>"+
-							"</tr>"+
-						"</table>"+
-					"</div>"+
-				"</fieldset>"+
-			"</div>"+
-			"<div id=\"st_btns\" class='aright buttons-list'>"+
-				"<input type=\"button\" value=\"OK\" onclick=\"theDialogManager.hide('stg');theWebUI.setSettings();return(false);\" class=\"OK Button\" />"+
-				"<input type=\"button\" value=\""+theUILang.Cancel+"\" class=\"Cancel Button\" />"+
-			"</div>"+
-		"</div>");
+		$("<div>").attr({id: "stg_c"}).addClass("cont").append(
+			stgPanel,
+			$("<div>").attr({id: "stg-pages"}).append(
+				stgGlCont, stgDlCont, stgConCont, stgBtCont, stgFmtCont, stgAoCont,
+				$("<div>").attr({id: "st_btns"}).addClass("buttons-list").append(
+					$("<button>").text(theUILang.ok).on("click", () => {theDialogManager.hide('stg'); theWebUI.setSettings(); return false;}),
+					$("<button>").text(theUILang.Cancel).addClass("Cancel"),
+				),
+			),
+		),
+	);
 }
 
 function hasThemeHint() {
@@ -783,9 +867,9 @@ function correctContent()
 		}
 		if(theWebUI.systemInfo.rTorrent.iVersion>=0x900)
 		{
-			$('#st_ao_h table tr:first').remove();
-			$('#st_ao_h table tr:first').remove();
-			$('#st_ao_h table tr:first').remove();
+			for (let i = 0; i < 3; i++) {
+				$("#st_ao_h div.row:first").remove();
+			}
 			$.extend(theRequestManager.aliases,
 			{
 				"get_hash_interval"		: { name: "cat", prm: 0 },

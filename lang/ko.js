@@ -138,6 +138,10 @@ var theUILang =
  time_m				: "분 ", /*for x minutes remaining*/
  time_s				: "초 ", /*for x seconds remaining*/
  Base_directory			: "디렉토리",
+ Torrent_options		: "Torrent Options",
+ Return_select_label		: "Select",
+ Add_from_file			: "Add From File",
+ Add_from_URL			: "Add From URL",
  Number_Peers_min		: "최소 피어 수",
  Number_Peers_max		: "최대 피어 수",
  Tracker_Numwant		: "희망 피어 수",
@@ -280,6 +284,8 @@ var theUILang =
  webBadSessionError		: "플러그인이 동작하지 않습니다. 웹서버 사용자가 반드시 rTorrent 세션 디렉토리에 실행 권한을 가져야 합니다",
  webBadSessionWarning		: "일부 기능을 사용할 수 없습니다. 웹서버 사용자가 반드시 rTorrent 세션 디렉토리에 실행 권한을 가져야 합니다",
  Developers			: "개발자",
+ Original_webui			: "Original µTorrent WebUI",
+ rTorrent_adaption		: "rTorrent adaption (ruTorrent)",
  Check_new_version		: "업데이트 확인",
  here				: "여기",
  Num_No				: "No.", // This means "Number". To be used as header for number count, e.g.: throttle/ratio plugin
@@ -289,9 +295,12 @@ var theUILang =
  Toggle_details			: "세부 정보 표시 전환",
  Toggle_categories		: "카테고리 표시 전환",
  Delete_current_torrents	: "현재 토렌트 삭제",
+ Quick_search			: "Quick search",
  Select_all			: "모두 선택",
  Deselect_all			: "모두 선택 해제",
  showSpeedInTitle		: "제목에 속도 표시",
+ sidePanelMinWidth		: "Side panel min width",
+ listTableMinHeight		: "List table min height",
  speedGraphDuration		: "Duration of speed graph",
  speedGraphDurationOptions		: {600: "10 min", 1800: "30 min", 3600: "1 hr", 10800: "3 hrs"},
  badTempPath			: "웹서버 사용자가 tmp 디렉토리에 읽기/쓰기/실행 권한을 갖고 있지 않습니다. ruTorrent가 동작할 수 없습니다.",

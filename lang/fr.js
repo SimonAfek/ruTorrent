@@ -140,6 +140,10 @@ var theUILang =
  time_m				: "m ", /*for x minutes remaining*/
  time_s				: "s ", /*for x seconds remaining*/
  Base_directory			: "Répertoire",
+ Torrent_options		: "Options Torrent",
+ Return_select_label		: "Sélectionner",
+ Add_from_file			: "Ajouter depuis le fichier",
+ Add_from_URL			: "ajouter depuis l'URL'",
  Number_Peers_min		: "Nombre minimum de clients",
  Number_Peers_max		: "Nombre maximum de clients",
  Tracker_Numwant		: "Nombre souhaité de clients",
@@ -282,6 +286,8 @@ var theUILang =
  webBadSessionError		: "Le plugin ne fonctionnera pas. Le serveur web n’a pas la permission de lister le répertoire de session de rTorrent.",
  webBadSessionWarning		: "Certaines fonctionnalités ne seront pas disponibles. Le serveur web n’a pas la permission de lister le répertoire de session de rTorrent.",
  Developers			: "Développeurs ",
+ Original_webui			: "Original µTorrent WebUI",
+ rTorrent_adaption		: "rTorrent adaption (ruTorrent)",
  Check_new_version		: "Voir si une nouvelle version existe :",
  here				: "ici",
  Num_No				: "N°", // This means "Number". To be used as header for number count, e.g.: throttle/ratio plugin
@@ -291,9 +297,12 @@ var theUILang =
  Toggle_details			: "Basculer l’affichage des détails",
  Toggle_categories		: "Basculer l’affichage des catégories",
  Delete_current_torrents	: "Supprimer le(s) torrent(s) actuel(s)",
+ Quick_search			: "Rechercher rapidement",
  Select_all			: "Sélectionner tout",
  Deselect_all			: "Désélectionner tout",
  showSpeedInTitle		: "Vitesse de transfert dans la barre de titre",
+ sidePanelMinWidth		: "Side panel min width",
+ listTableMinHeight		: "List table min height",
  speedGraphDuration		: "Durée du graphique de vitesse",
  speedGraphDurationOptions	: {600: "10 mins", 1800: "30 mins", 3600: "1 hr", 10800: "3 hrs"},
  badTempPath			: "Le serveur web n’a pas accès en lecture/écriture/exécution au répertoire tmp. ruTorrent ne fonctionnera pas.",

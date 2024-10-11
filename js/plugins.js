@@ -260,36 +260,41 @@ rPlugin.prototype.canBeLaunched = function()
 
 rPlugin.prototype.attachPageToOptions = function(dlg,name)
 {
-        if(this.canChangeOptions())
+	if(this.canChangeOptions())
 	{
 		$("#st_btns").before( $(dlg).addClass("stg_con") );
-		$(".lm ul li:last").removeClass("last");
-		$(".lm ul").append( $("<li>").attr("id","hld_"+dlg.id).addClass("last").html("<a id='mnu_"+dlg.id+"' href=\"javascript://void()\" onclick=\"theOptionsSwitcher.run('"+dlg.id+"'); return(false);\">"+name+"</a>") );
-		$(dlg).css( {display: "none"} );
+		$(".lm ul").append(
+			$("<li>").attr("id","hld_"+dlg.id).append(
+				$("<div>").append(
+					$("<div>"),
+					$("<div>"),
+				),
+				$("<a>").attr(
+					{id: `mnu_${dlg.id}`, href: "#", onclick: `theOptionsSwitcher.run('${dlg.id}');return(false);`}
+				).text(name),
+			),
+		);
 	}
+	theOptionsSwitcher.items[dlg.id] = {afterShow: null, afterHide: null,};
 	return(this);
 }
 
-rPlugin.prototype.removePageFromOptions = function(id)
-{
-	if(theOptionsSwitcher.current==id)
+rPlugin.prototype.removePageFromOptions = function(id) {
+	if (theOptionsSwitcher.current === id)
 		theOptionsSwitcher.run('st_gl');
-	$("#"+id).remove();
-	$("#hld_"+id).remove();
-	$(".lm ul li:last").addClass("last");
-	return(this);
+	$("#" + id).remove();
+	$("#hld_" + id).remove();
+	return this;
 }
 
-rPlugin.prototype.attachPageToTabs = function(dlg,name,idBefore)
-{
-        if(this.canChangeTabs())
-        {
-                if(!dlg.className)
+rPlugin.prototype.attachPageToTabs = function(dlg, name, idBefore) {
+	if (this.canChangeTabs()) {
+		if(!dlg.className)
 			dlg.className = "tab";
 		theTabs.tabs[dlg.id] = name;
-		var newLbl = document.createElement("li");
-		newLbl.id = "tab_"+dlg.id;
-		newLbl.innerHTML = "<a href=\"javascript://void();\" onmousedown=\"theTabs.show('"+dlg.id+"');\" onfocus=\"this.blur();\">" + name + "</a>";
+		const newLabel = $("<li>").attr({id:"tab_"+dlg.id}).addClass("nav-item").append(
+			$("<a>").attr({href:"#"}).addClass("nav-link").text(name).on("click", () => theTabs.show(dlg.id)).on("focus", (ev) => ev.target.blur()),
+		);
 		if(!idBefore)
 			idBefore = "lcont";
 		if(theWebUI.activeView === dlg.id) {
@@ -299,13 +304,12 @@ rPlugin.prototype.attachPageToTabs = function(dlg,name,idBefore)
 			$(dlg).hide();
 		}
 		$$(idBefore).parentNode.insertBefore(dlg,$$(idBefore));
-		var beforeLbl = $$("tab_"+idBefore);
-		beforeLbl.parentNode.insertBefore(newLbl,beforeLbl);
+		$("#tab_"+idBefore).before(newLabel);
 		if (theWebUI.activeView === dlg.id) {
 			setTimeout(() => theTabs.show(dlg.id));
 		}
 	}
-	return(this);
+	return this;
 }
 
 rPlugin.prototype.renameTab = function(id,name)
@@ -328,35 +332,26 @@ rPlugin.prototype.removePageFromTabs = function(id)
 
 rPlugin.prototype.registerTopMenu = function(weight)
 {
-        if(this.canChangeToolbar())
-        {
-        	if( !$$("mnu_plugins") )
-        		this.addButtonToToolbar("plugins",theUILang.Plugins+"...","theWebUI.showPluginsMenu()","help");
-		thePlugins.registerTopMenu( this, weight );
+	if (this.canChangeToolbar()) {
+		if (!$$("mnu_plugins"))
+			this.addButtonToToolbar("plugins", theUILang.Plugins, "theWebUI.showPluginsMenu()", "help");
+		thePlugins.registerTopMenu(this, weight);
 	}
-	return(this);
+	return this;
 }
 
-rPlugin.prototype.addButtonToToolbar = function(id,name,onclick,idBefore)
-{
-        if(this.canChangeToolbar())
-        {
-		var newBtn = document.createElement("A");
-		newBtn.id="mnu_"+id;
-		newBtn.href='javascript://void();';
-		newBtn.title=name;
-		newBtn.innerHTML='<div class="top-menu-item" id="'+id+'" onclick="'+onclick+';return(false);"></div>';
-		$(newBtn).addClass('top-menu-item').on('focus', function(e) { this.blur(); } );
-		var targetBtn = idBefore ? $$("mnu_"+idBefore) : null;
-		if(targetBtn)
-			targetBtn.parentNode.insertBefore(newBtn,targetBtn);
-		else
-		{
-			targetBtn = $$("mnu_settings");
-			targetBtn.parentNode.appendChild(newBtn);
-		}
+rPlugin.prototype.addButtonToToolbar = function(id, name, onclick, idBefore) {
+	if (this.canChangeToolbar()) {
+		const newBtn = $("<a>").attr(
+			{id:`mnu_${id}`, href:"#", onclick:onclick, onfocus:"this.blur();", title:`${name}...`}
+		).addClass("nav-link top-menu-item").append(
+			$("<div>").attr({id:id}).addClass("nav-icon"),
+			$("<span>").addClass("d-inline d-md-none").text(`${name}...`),
+		);
+		const beforeBtn = $(`#mnu_${idBefore}`);
+		beforeBtn && beforeBtn.length > 0 ? newBtn.insertBefore(beforeBtn) : newBtn.insertBefore($("#mnu_settings"));
 	}
-	return(this);
+	return this;
 }
 
 rPlugin.prototype.removeButtonFromToolbar = function(id)
@@ -387,13 +382,22 @@ rPlugin.prototype.removeSeparatorFromToolbar = function(idBefore)
 	$("#mnu_"+idBefore).prev().remove();
 }
 
-rPlugin.prototype.addPaneToStatusbar = function(id,div,no)
+rPlugin.prototype.addPaneToStatusbar = function(id, statusCell, no, mobileVisible)
 {
-        if(this.canChangeStatusBar())
-        {
-		var row = $("#firstStatusRow").get(0);
-		var td = row.insertCell(iv(no));
-		$(td).attr("id",id).addClass("statuscell").append( $(div) );
+	if(this.canChangeStatusBar())
+	{
+		statusCell.attr({id: id}).addClass("status-cell");
+		mobileVisible || statusCell.addClass("d-none d-md-flex");
+
+		if (
+			!$("#StatusBar div.status-cell").length || 
+			no >= $("#StatusBar div.status-cell").length ||
+			no < 0
+		) {
+			statusCell.insertBefore($("div#servertime").parent());
+		} else {
+			statusCell.insertBefore($("#StatusBar div.status-cell").get(no));
+		}
 	}
 	return(this);
 }

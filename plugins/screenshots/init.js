@@ -179,14 +179,12 @@ if(plugin.canChangeMenu())
 		}
 	}
 
-	plugin.setPlayControls = function()
-	{
-		if($('.scframe').length)
-		{
+	plugin.setPlayControls = function() {
+		if ($('.scframe').length) {
 			$('.scplay').show();
 			var current = plugin.getCurrentFrame();
 			$("#tskConsole-header").html(theUILang.exScreenshot+" "+(current+1)+"/"+$('.scframe').length);
-			$("#scplay").val(plugin.playTimer ? "▀" : "►")
+			$("#scplay").text(plugin.playTimer ? "■" : "►")
 			if((current==0) || plugin.playTimer)
 			{
 				$("#scfirst,#scprev").prop("disabled",true);
@@ -257,62 +255,67 @@ plugin.setCurrentFrame = function(no)
 	plugin.setPlayControls();
 }
 
-plugin.onLangLoaded = function()
-{
-	if(!thePlugins.get("_task").allStuffLoaded)
+plugin.onLangLoaded = function() {
+	if (!thePlugins.get("_task").allStuffLoaded)
 		setTimeout(arguments.callee,1000);
-	else
-	{
-		if(!explorerIsInstalled)
-			plugin.attachPageToOptions($("<div>").attr("id","st_screenshots").html(
-				"<fieldset>"+
-					"<legend>"+theUILang.exFFMPEG+"</legend>"+
-					"<table>"+
-					"<tr><td><input type=\"checkbox\" id=\"exusewidth\" onchange=\"linked(this, 0, ['exfrmwidth']);\"/><label id='lbl_exfrmwidth' for='exfrmwidth' class='disabled'>"+
-						theUILang.exFrameWidth+'</label></td><td class="alr"><input type="text" id="exfrmwidth" class="TextboxShort" disabled="true"/></td></tr>'+
-					"<tr><td>"+theUILang.exFramesCount+'</td><td class="alr"><input type="text" id="exfrmcount" class="TextboxShort"/></td></tr>'+
-					"<tr><td>"+theUILang.exStartOffset+', '+theUILang.time_s+'</td><td class="alr"><input type="text" id="exfrmoffs" class="TextboxShort"/></td></tr>'+
-					"<tr><td>"+theUILang.exBetween+', '+theUILang.time_s+'</td><td class="alr"><input type="text" id="exfrminterval" class="TextboxShort"/></td></tr>'+
-					"<tr><td>"+theUILang.exPlayInterval+', '+theUILang.time_s+'</td><td class="alr"><input type="text" id="explayinterval" class="TextboxShort"/></td></tr>'+
-					"<tr><td>"+theUILang.exImageFormat+'</td><td class="alr"><select id="exformat" class="TextboxShort">'+
-						"<option value='0'>JPEG</option>"+
-						"<option value='1'>PNG</option>"+
-						'</select></td></tr>'+
-					"</table>"+
-				"</fieldset>"
-				)[0],theUILang.exFFMPEG);
+	else {
+		if (!explorerIsInstalled)
+			plugin.attachPageToOptions(
+				$("<div>").attr("id","st_screenshots").append(
+					$("<fieldset>").append(
+						$("<legend>").text(theUILang.exFFMPEG),
+						$("<div>").addClass("row").append(
+							$("<div>").addClass("col-12 col-md-6").append(
+								$("<input>").attr({type:"checkbox", id:"exusewidth", onchange:"linked(this, 0, ['exfrmwidth']);"}),
+								$("<label>").attr({for:"exfrmwidth", id:"lbl_exfrmwidth"}).addClass("disabled").text(theUILang.exFrameWidth),
+							),
+							$("<div>").addClass("col-12 col-md-6").append(
+								$("<input>").attr({type:"text", id:"exfrmwidth"}).prop("disabled", true),
+							),
+							...[
+								["exfrmcount", theUILang.exFramesCount],
+								["exfrmoffs", theUILang.exStartOffset + ", " + theUILang.time_s],
+								["exfrminterval", theUILang.exBetween + ", " + theUILang.time_s],
+								["explayinterval", theUILang.exPlayInterval + ", " + theUILang.time_s],
+							].flatMap(([id, text]) => [
+								$("<div>").addClass("col-12 col-md-6").append(
+									$("<label>").attr({for:id}).text(text),
+								),
+								$("<div>").addClass("col-12 col-md-6").append(
+									$("<input>").attr({type:"text", id:id}),
+								),
+							]),
+							$("<div>").addClass("col-12 col-md-6").append(
+								$("<label>").attr({for:"exformat"}).text(theUILang.exImageFormat),
+							),
+							$("<div>").addClass("col-12 col-md-6").append(
+								$("<select>").attr({id:"exformat"}).append(
+									$("<option>").val(0).text("JPEG"),
+									$("<option>").val(1).text("PNG"),
+								),
+							),
+						),
+					),
+				)[0],
+				theUILang.exFFMPEG,
+			);
 		$('#tsk_btns').prepend(
-			"<input type='button' class='Button scplay' id='scfirst' value='<<'>"+
-			"<input type='button' class='Button scplay' id='scprev' value='<'>"+
-			"<input type='button' class='Button scplay' id='scplay' value='►'>"+
-			"<input type='button' class='Button scplay' id='scnext' value='>'>"+
-			"<input type='button' class='Button scplay' id='sclast' value='>>'>&nbsp;&nbsp;&nbsp;&nbsp;"+
-			"<input type='button' class='Button scplay' id='scsave' value='"+theUILang.exSave+"'>"+
-			"<input type='button' class='Button scplay' id='scsaveall' value='"+theUILang.exSaveAll+"'>"
-			 );
-		$("#scfirst").on('click', function()
-		{
-			plugin.setCurrentFrame(0);
-		});
-		$("#sclast").on('click', function()
-		{
-			plugin.setCurrentFrame($('.scframe').length-1);
-		});
-		$("#scprev").on('click', function()
-		{
-			plugin.setCurrentFrame( plugin.getCurrentFrame()-1 );
-		});
-		$("#scnext").on('click', plugin.setNextFrame );
-		$("#scplay").on('click', function()
-		{
-		        if(plugin.playTimer)
-			{
+			...[
+				["scfirst", "<<"], ["scprev", "<"],
+				["scplay", "►"], ["scnext", ">"], ["sclast", ">>"],
+				["scsave", theUILang.exSave], ["scsaveall", theUILang.exSaveAll],
+			].map(([id, text]) => $("<button>").attr({type:"button", id:id}).addClass("scplay").text(text)),
+		);
+		$("#scfirst").on('click', () => plugin.setCurrentFrame(0));
+		$("#sclast").on('click', () => plugin.setCurrentFrame($('.scframe').length - 1));
+		$("#scprev").on('click', () => plugin.setCurrentFrame( plugin.getCurrentFrame() - 1));
+		$("#scnext").on('click', () => plugin.setNextFrame());
+		$("#scplay").on('click', () => {
+			if (plugin.playTimer) {
 				window.clearInterval(plugin.playTimer);
 				plugin.playTimer = null;
 				plugin.setPlayControls();
-			}
-			else
-			{
+			} else {
 				plugin.playTimer = window.setInterval( plugin.setNextFrame, iv(plugin.ffmpegSettings.explayinterval)*1000 );
 				plugin.setNextFrame();
 			}
@@ -325,14 +328,12 @@ plugin.onLangLoaded = function()
 				'<input type="hidden" name="fno" id="scimgno" value="0">'+
 				'<input type="hidden" name="file" id="scimgfile" value="frame">'+
 			'</form>').width(0).height(0));
-		$("#scsave").on('click', function()
-		{
+		$("#scsave").on('click', function() {
 			$("#scimgno").val(plugin.getCurrentFrame());
 			$("#scimgcmd").val("ffmpeggetimage");
 			$('#scgetimg').trigger('submit');
 		});
-		$("#scsaveall").on('click', function()
-		{
+		$("#scsaveall").on('click', function() {
 			$("#scimgcmd").val("ffmpeggetall");
 			$('#scgetimg').trigger('submit');
 		});

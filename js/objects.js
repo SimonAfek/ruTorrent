@@ -4,108 +4,146 @@
  */
 
 // Drag & Drop object 
-function DnD( id, options )
-{
-	this.obj = $('#'+id);
-	var headers = this.obj.find(".dlg-header");
-	var header = headers.length>0 ? $(headers[0]) : this.obj;
-	this.options = options || {};
-	if(!this.options.left)
-		this.options.left = function() { return(0); };
-	if(!this.options.top)
-		this.options.top = function() { return(0); };
-	if(!this.options.right)
-		this.options.right = function() { return($(window).width()); };
-	if(!this.options.bottom)
-		this.options.bottom = function() { return($(window).height()); };
-	if(!this.options.onStart)
-		this.options.onStart = function() { return(true); }
-	if(!this.options.onRun)
-		this.options.onRun = function() {}
-	if(!this.options.onFinish)
-		this.options.onFinish = function() {}
-	if(!this.options.maskId)
-		this.options.maskId = 'dragmask';
-	this.detachedMask = (this.options.maskId!=id);
-	this.mask = $('#'+this.options.maskId);
-	header.off( "mousedown" );
-	header.on( "mousedown", this, this.start );
-}
-
-DnD.prototype.start = function( e )
-{
-	var self = e.data;
-	if(self.options.onStart(e))
-	{
-		var offs = self.obj.offset();
-		theDialogManager.bringToTop(self.obj.attr("id"))
-		theDialogManager.bringToTop(self.mask.attr("id"))
-		if(self.detachedMask)
-		{
-			self.mask.css( { left: offs.left, top: offs.top, width: self.obj.width(), height: self.obj.height() } );
-			self.mask.show();
-		}
-		self.delta = { x: e.clientX-offs.left, y: e.clientY-offs.top };
-		$(document).on("mousemove",self,self.run); 
-		$(document).on("mouseup",self,self.finish);
-	}	
-	return(false);
-}
-
-DnD.prototype.run = function( e )
-{
-	var self = e.data;
-	if(!self.options.restrictX)
-		self.mask.css( { left: Math.min(Math.max(self.options.left(), e.clientX),self.options.right())-self.delta.x } ); 
-	if(!self.options.restrictY)
-		self.mask.css( { top: Math.min(Math.max(self.options.top(), e.clientY),self.options.bottom())-self.delta.y } );
-	self.options.onRun(e);
-	return(false);
-}
-
-DnD.prototype.finish = function( e )
-{
-	var self = e.data;
-	self.options.onFinish(e);
-	if(self.detachedMask)
-	{
-		var offs = self.mask.offset();
-		self.mask.hide();
-		self.obj.css( { left: offs.left, top: offs.top } );
+class DnD {
+	constructor(id, options) {
+		this.obj = $('#' + id);
+		const headers = this.obj.find(".dlg-header");
+		const header = headers.length > 0 ? $(headers[0]) : this.obj;
+		this.options = options || {};
+		if (!this.options.left)
+			this.options.left = function() {return 0;};
+		if (!this.options.top)
+			this.options.top = function() {return 0;};
+		if (!this.options.right)
+			this.options.right = function() {return ($(window).width());};
+		if (!this.options.bottom)
+			this.options.bottom = function() {return ($(window).height());};
+		if (!this.options.onStart)
+			this.options.onStart = function() {return true;};
+		if (!this.options.onRun)
+			this.options.onRun = function() {};
+		if (!this.options.onFinish)
+			this.options.onFinish = function() {};
+		if (!this.options.maskId)
+			this.options.maskId = 'dragmask';
+		this.detachedMask = this.options.maskId !== id;
+		this.mask = $('#' + this.options.maskId);
+		header.off("mousedown");
+		header.on("mousedown", this, this.start);
 	}
-	$(document).off("mousemove",self.run); 
-	$(document).off("mouseup",self.finish);
-	return(false);
+
+	start(e) {
+		// allow dnd only for medium-sized screens and up
+		if ($(window).width() < 768) return false;
+
+		const self = e.data;
+		if (self.options.onStart(e)) {
+			const offs = self.obj.offset();
+			theDialogManager.bringToTop(self.obj.attr("id"));
+			theDialogManager.bringToTop(self.mask.attr("id"));
+			if (self.detachedMask) {
+				self.mask.css({left: offs.left, top: offs.top, width: self.obj.width(), height: self.obj.height()});
+				self.mask.show();
+			}
+			self.delta = {x: e.clientX - offs.left, y: e.clientY - offs.top};
+			$(document).on("mousemove", self, self.run);
+			$(document).on("mouseup", self, self.finish);
+		}
+		return false;
+	}
+
+	run(e) {
+		$("body").css({cursor:"grabbing"});
+		const self = e.data;
+		if (!self.options.restrictX) {
+			self.mask.css({
+				left: Math.min(Math.max(self.options.left(), e.clientX), self.options.right()) - self.delta.x
+			});
+		}
+		if (!self.options.restrictY) {
+			self.mask.css({
+				top: Math.min(Math.max(self.options.top(), e.clientY), self.options.bottom()) - self.delta.y
+			});
+		}
+		self.options.onRun(e);
+		return false;
+	}
+
+	finish(e) {
+		$("body").css({cursor:""});
+		const self = e.data;
+		self.options.onFinish(e);
+		if (self.detachedMask) {
+			const offs = self.mask.offset();
+			self.mask.hide();
+			self.obj.css(offs);
+			// move directory frames along with the dialog window
+			self.obj.find(".browseEdit").each((i, ele) => {
+				if ($(`#${ele.id}_frame`).css("display") !== "none") {
+					// move open ones only because they will automatically reposition
+					// when toggled open
+					const frameOffs = ele.getBoundingClientRect();
+					$(`#${ele.id}_frame`).css(
+						{
+							top: frameOffs.bottom,
+							left: frameOffs.left,
+						}
+					);
+				}
+			});
+		}
+		$(document).off("mousemove", self.run);
+		$(document).off("mouseup", self.finish);
+		return false;
+	}
 }
 
 // Dialog manager
-var theDialogManager = 
-{
+var theDialogManager = {
 	maxZ: 2000,
 	visible : [],
 	items : {},
 	divider: 0,
 	modalState: false,
 
-	make: function( id, name, content, isModal, noClose )
-	{
-		$(document.body).append($("<div>").attr("id",id).addClass("dlg-window").html(content).
-			prepend( $("<div>").attr("id",id+"-header").addClass("dlg-header").text(name) ).
-			prepend( $("<a></a>").addClass("dlg-close") ));
-		return(this.add(id,isModal,noClose));
+	/**
+	 * Create a dialog window.
+	 * @param {string} id The HTML `id` of dialog window.
+	 * @param {string} name The title shown in the header of the dialog window.
+	 * @param {string | object | object[]} content Content of the dialog window,
+	 * including the buttons in the footer. Can be an HTML string,
+	 * a jQuery object, or an array of jQuery objects.
+	 * @param {boolean} isModal The modal state of the dialog window, default is `false`.
+	 * @param {boolean} noClose Whether to disable the close button, default is `false`.
+	 * @returns {object} The dialog manager object itself.
+	 */
+	make: function(id, name, content, isModal, noClose) {
+		if ($type(content) === "string") {
+			content = $(content);
+		}
+		$("#dialog-container").append(
+			$("<div>").attr("id",id).addClass("dlg-window").append(
+				$("<div>").append(
+					$("<div>").attr({id:`${id}-header`}).addClass("dlg-header").text(name),
+					$("<a>").attr({href:"#"}).addClass("dlg-close"),
+				),
+				content,
+			),
+		);
+		return this.add(id, isModal, noClose);
 	},
-        add: function( id, isModal, noClose )
-	{
-	        var obj = $('#'+id);
-	        if(!isModal)
-		        isModal = false;
-		obj.css( { position: "absolute", display: "none", outline: "0px solid transparent" } ).
-	        	data("modal",isModal).data("nokeyclose",noClose);
-	        if(!noClose)
-		        obj.find(".dlg-close").attr("href","javascript:theDialogManager.hide('"+id+"');");
-	        var self = this;
-		var checkForButtons = function me(val)
-		{
+	add: function(id, isModal, noClose) {
+		var obj = $('#'+id);
+		if (!isModal)
+			isModal = false;
+		obj.data({
+			modal: isModal,
+			nokeyclose: noClose,
+		});
+		if (!noClose)
+			obj.find(".dlg-close").on("click", () => theDialogManager.hide(id));
+		var self = this;
+		var checkForButtons = function me(val) {
 			if(val.hasClass("Cancel"))
 				val.on('click', function() { theDialogManager.hide(id); } );
 			if(val.hasClass("Button"))
@@ -113,8 +151,7 @@ var theDialogManager =
 			val.children().each( function(ndx,val) { me($(val)) } );
 		};
 		checkForButtons(obj);
-		var inScrollBarArea = function(obj,x,y)
-		{
+		var inScrollBarArea = function(obj,x,y) {
 			if(obj.tagName && (/^input|textarea$/i).test(obj.tagName))
 				return(false);
 			var c = $(obj).offset();
@@ -176,25 +213,37 @@ var theDialogManager =
 	        	this.items[id].afterShow(id);
 		this.bringToTop(id);
 	},
-	hide: function( id, callback )
-	{
-		var pos = $.inArray(id+"",this.visible);
-		if(pos>=0)
-			this.visible.splice(pos,1);
-        	var obj = $('#'+id);
-        	if($type(this.items[id]) && ($type(this.items[id].beforeHide)=="function"))
-	        	this.items[id].beforeHide(id);
-		obj.hide(this.divider,callback);
-        	if($type(this.items[id]) && ($type(this.items[id].afterHide)=="function"))
-	        	this.items[id].afterHide(id);
-		if(obj.data("modal"))
+	hide: function(id, callback) {
+		const pos = $.inArray(id + "", this.visible);
+		if (pos >= 0)
+			this.visible.splice(pos, 1);
+		const obj = $('#'+id);
+		if ($type(this.items[id]) && ($type(this.items[id].beforeHide) === "function"))
+			this.items[id].beforeHide(id);
+		obj.hide(this.divider, callback);
+		if ($type(this.items[id]) && ($type(this.items[id].afterHide) === "function"))
+			this.items[id].afterHide(id);
+		if (obj.data("modal"))
 			this.clearModalState();
 	},
-	setHandler: function(id,type,handler)
-	{
-		if($type(this.items[id]))
-	        	this.items[id][type] = handler;
-		return(this);
+	setHandler: function(id, type, handler) {
+		if ($type(this.items[id]))
+			this.items[id][type] = handler;
+		return this;
+	},
+	addHandler: function(id, type, handler) {
+		if ($type(this.items[id])) {
+			const existing = this.items[id][type];
+			if (existing) {
+				this.items[id][type] = function() {
+					existing();
+					handler();
+				};
+			} else {
+				this.items[id][type] = handler;
+			}
+		}
+		return this;
 	},
 	isModalState: function()
 	{
@@ -238,35 +287,30 @@ var theContextMenu =
 	mouse: { x: 0, y: 0 },
 	noHide: false,
 
-        init: function()
-	{
+	init: function() {
 		var self = this;
 		$(document).on('mousemove', function(e) { self.mouse.x = e.clientX; self.mouse.y = e.clientY; } );
-		$(document).on('mouseup', function(e)
-		{
-			var ele = $(e.target);
-			if(e.which == 3) 
-			{
-				if(!e.fromTextCtrl)
+		$(document).on('mouseup', function(e) {
+			const ele = $(e.target);
+			if (e.which === 3) {
+				if (!e.fromTextCtrl)
 					e.stopPropagation();
-			}
-			else
-			{
-				if(!ele.hasClass("top-menu-item") &&
+			} else {
+				if(!ele.hasClass("top-menu-item") && !ele.parent().hasClass("top-menu-item") &&
 					!ele.hasClass("exp") &&
 					!ele.hasClass("CMenu") &&
 					!(ele.hasClass("menu-cmd") && ele.hasClass("dis")) &&
 					!ele.hasClass("menuitem") &&
 					!ele.hasClass("menu-line"))
 				{
-					if(ele.hasClass("menu-cmd") && self.noHide)
+					if (ele.hasClass("menu-cmd") && self.noHide)
 						ele.toggleClass("sel");
 					else
-		   				window.setTimeout("theContextMenu.hide()", 50); 
+						window.setTimeout("theContextMenu.hide()", 50); 
 				}
 			}
 		});
-                this.obj = $("<UL>").css( { position: "absolute" } ).addClass("CMenu");
+		this.obj = $("<ul>").addClass("CMenu");
 		$(document.body).append(this.obj);
 	},
 	get: function( label )
@@ -282,8 +326,7 @@ var theContextMenu =
 		});
 		return(ret);
 	},
-	add: function()
-	{
+	add: function() {
 		var args = new Array();
 		$.each(arguments, function(ndx,val) { args.push(val); });
         	var aft = null;
@@ -300,55 +343,61 @@ var theContextMenu =
 			args.splice(0, 1);		
 		}
 		var self = this;
-		$.each(args, function(ndx,val) 
-		{
-		        if($type(val))
-			{
-				var li = $("<li>").addClass("menuitem");
-				if(val[0] == CMENU_SEP)
+		$.each(args, function(ndx,val) {
+			if ($type(val)) {
+				const li = $("<li>").addClass("menuitem");
+				if (val[0] == CMENU_SEP)
 					li.append($("<hr>").addClass("menu-line"));
-				else
-				if(val[0] == CMENU_CHILD)
-				{
-					li.append( $("<a></a>").addClass("exp").text(val[1]) );
+				else if(val[0] == CMENU_CHILD) {
+					li.append( $("<a>").addClass("exp").text(val[1]) );
 					var ul = $("<ul>").addClass("CMenu");
-					for(var j = 0, len = val[2].length; j < len; j++) 
-					{
+					for (var j = 0, len = val[2].length; j < len; j++) {
 						self.add(ul, val[2][j]);
 					}
 					li.append(ul);
-				}
-				else
-			       	if(val[0] == CMENU_SEL) 
-		 		{
-		 	        	var a = $("<a></a>").addClass("sel menu-cmd").text(val[1]);
-			 	        switch($type(val[2]))
-			 	        {
-						case "string": a.attr("href","javascript://void();").on('click', function() { eval(val[2]) } ); break;
-						case "function": a.attr("href","javascript://void();").on('click', val[2]); break;
-					}
-					li.append(a.on('focus', function() { this.blur(); } ));
-				}
-				else
-				{
-					if($type(val[0]))
-					{
-						var a = $("<a></a>").addClass("menu-cmd").text(val[0]);
-						switch($type(val[1]))
-						{
-				 	        	case false: a.addClass("dis"); break;
-							case "string": a.attr("href","javascript://void();").on('click', function() { eval(val[1]) } ); break;
-							case "function": a.attr("href","javascript://void();").on('click', val[1]); break;
+				} else if(val[0] == CMENU_SEL) {
+					const a = $("<a>").addClass("sel menu-cmd").attr({href: "#"}).text(val[1]);
+					switch ($type(val[2])) {
+						case "string": {
+							a.on('click', () => eval(val[2]));
+							break;
 						}
-						li.append(a.on('focus', function() { this.blur(); } ));
+						case "function": {
+							a.on('click', val[2]);
+							break;
+						}
+						default: {
+							return;
+						}
+					}
+					li.append(
+						a.on('focus', (ev) => ev.target.blur()),
+					);
+				} else {
+					if ($type(val[0])) {
+						const a = $("<a>").addClass("menu-cmd").text(val[0]);
+						switch ($type(val[1])) {
+							case false: {
+								a.addClass("dis");
+								break;
+							}
+							case "string": {
+								a.attr({href:"#"}).on('click', () => eval(val[1]));
+								break;
+							}
+							case "function": {
+								a.attr({href:"#"}).on('click', val[1]);
+								break;
+							}
+						}
+						li.append(
+							a.on('focus', (ev) => ev.target.blur()),
+						);
 					}
 				}
-				if(aft)
-					aft.after(li);
-				else
-					o.append(li);
+				aft ? aft.after(li) : o.append(li);
 			}
-                });
+		});
 	},
 	clear: function()
 	{
