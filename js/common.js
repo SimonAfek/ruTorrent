@@ -160,10 +160,10 @@ $.fn.extend(
 		}));
 	},
 
-	enableSysMenu: function() {
-		return this
-			.on("contextmenu", (e) => e.stopImmediatePropagation())
-			.on("selectstart", (e) => {e.stopImmediatePropagation(); return true;});
+	enableSysMenu: function()
+	{
+		return(this.on("contextmenu",function(e) { e.stopImmediatePropagation(); }).
+			on("selectstart",function(e) { e.stopImmediatePropagation(); return(true); }));
 	},
 
 	setCursorPosition: function(pos)
@@ -190,16 +190,24 @@ function addslashes(str)
 	return( (str + '').replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0').replace(/\u000A/g, '\\n').replace(/\u000D/g, '\\r') );
 }
 
-function iv(val)
-{
-	var v = (val==null) ? 0 : parseInt(val + "");
-	return(isNaN(v) ? 0 : v);
+/**
+ * A ruTorrent wrapper to parse an input value as an integer.
+ * @param {any} val Input value to be parsed as an integer.
+ * @returns {number} The parsed result as an integer.
+ */
+function iv(val) {
+	const v = (!val) ? 0 : parseInt(val + "");
+	return isNaN(v) ? 0 : v;
 }
 
-function ir(val)
-{
-	var v = (val==null) ? 0 : parseFloat(val + "");
-	return(isNaN(v) ? 0 : v);
+/**
+ * A ruTorrent wrapper to parse an input value as n float.
+ * @param {any} val Input value to be parsed as a float.
+ * @returns {number} The parsed result as a float.
+ */
+function ir(val) {
+	const v = (!val) ? 0 : parseFloat(val + "");
+	return isNaN(v) ? 0 : v;
 }
 
 /**
@@ -238,19 +246,16 @@ function escapeHTML(str)
 	return( String(str).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;') );
 }
 
-/**
- * Confirm again before taking action.
- * @param {string} title Title of the dialog.
- * @param {string} content Hint of the action to be confirmed.
- * @param {Function | string} funcYesName Function to be executed if confirmed.
- */
-function askYesNo(title, content, funcYesName) {
-	$("#yesnoDlg-header").text(title);
-	$("#yesnoDlg-content").text(content);
-	$("#yesnoOK").off('click').on('click', () => {
-		$type(funcYesName) === "function" ? funcYesName() : eval(funcYesName);
+function askYesNo( title, content, funcYesName )
+{
+	$("#yesnoDlg-header").html(title);
+	$("#yesnoDlg-content").html(content);
+	$("#yesnoOK").off('click');
+	$("#yesnoOK").on('click', function()
+	{
+		typeof(funcYesName)==="function" ? funcYesName() : eval(funcYesName);
 		theDialogManager.hide("yesnoDlg");
-		return false;
+		return(false);
 	});
 	theDialogManager.show("yesnoDlg");
 }
