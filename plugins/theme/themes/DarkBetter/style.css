@@ -2,10 +2,11 @@ html, body {background-color: #181818; color: #999999; }
 :root {
   --menu-color: #666666;
   --menu-background-color: #181818;
+  --menu-border-color: #333333;
 
   --menu-disabled-color: #333333;
+  --menu-disabled-background-color: #181818;
 
-  --menu-border-color: #333333;
   --menu-highlight-color: #111111;
   --menu-highlight-background-color: #888888;
 
@@ -224,7 +225,6 @@ div#t .nav-link {
   border-color: #333333;
   color: #686868;
 }
-div#t a:hover {background: #222;}
 div#t div.TB_Separator {background-color: #333333}
 div#t div#add {background: transparent url(./images/tb_add.svg) no-repeat center; background-size: 28px}
 div#t div#create {background: transparent url(./images/tb_create.svg) no-repeat center; background-size: 28px}
@@ -307,7 +307,7 @@ div#stg .lm {background-color: #181818; border: 1px solid #333333}
 .lm li a.focus {background-color: #333333}
 .stg_con {background-color: #181818}
 * > fieldset {border: 1px solid #333333}
-input.disabled {background-color: #181818; color: #333333; border: 1px solid #333333}
+input.disabled, button.disabled {background-color: #181818; color: #333333; border: 1px solid #333333}
 td.disabled, label.disabled, span.disabled, div.disabled {color: #333333}
 legend {color: #888888}
 select.cols {border: 1px solid #333333}

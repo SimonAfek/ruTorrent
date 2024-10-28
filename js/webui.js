@@ -5,7 +5,7 @@
 
 var theWebUI =
 {
-  	version: "5.1.B2",
+  	version: "5.1.B3",
 	tables:
 	{
 		trt:
@@ -178,6 +178,10 @@ var theWebUI =
 		"webui.show_open_status":	1,
 		"webui.show_view_panel": 1,
 		"webui.register_magnet":	0,
+		"webui.not_add_path":		0,
+		"webui.torrents_start_stopped":	0,
+		"webui.fast_resume":		0,
+		"webui.randomize_hash":	0,
 		...(() => {
 			const defaults = {};
 			const units = ['default', 'kb', 'mb', 'gb', 'tb', 'pb'];
@@ -734,8 +738,7 @@ var theWebUI =
 					if((/^webui\./).test(i))
 					{
 						needSave = true;
-						switch(i)
-						{
+						switch(i) {
 						        case "webui.effects":
 						        {
 								theDialogManager.setEffects( iv(nv)*200 );
@@ -2497,17 +2500,24 @@ function createCategoryList(catModule) {
 	theDialogManager.make(
 		"dlgRenameView",
 		theUILang.RenameView,
-		$$('pview-rename-dialog-template').innerHTML,
-		true
-	);
-	$$('dlgRenameView')
-		.querySelector('button[value="confirm"]')
-		.addEventListener("click", function () {
-			const dialogEl = $$('dlgRenameView');
-			const inputEl = dialogEl.querySelector('input[type="text"]');
-			categoryList.renameView(inputEl.dataset.viewId, inputEl.value);
-			theDialogManager.hide('dlgRenameView');
-		},
+		[
+			$("<div>").addClass("cont").append(
+				$("<div>").addClass("row").append(
+					$("<div>").addClass("col-12").append(
+						$("<input>").attr({type:"text"}).on("focus", (ev) => ev.target.select()),
+					),
+				),
+			),
+			$("<div>").addClass("buttons-list").append(
+				$("<button>").val("confirm").on("click", () => {
+					const inputEl = $("#dlgRenameView input[type=text]");
+					categoryList.renameView(inputEl.data("view-id"), inputEl.val())
+					theDialogManager.hide('dlgRenameView');
+				}).text(theUILang.ok),
+				$("<button>").addClass("Cancel").text(theUILang.Cancel),
+			),
+		],
+		true,
 	);
 	const categoryList = new catModule.CategoryList({
 		panelAttribs: catList.panelAttribs,
@@ -2539,12 +2549,8 @@ function createCategoryList(catModule) {
 		onConfigChangeFn: theWebUI.save.bind(theWebUI),
 		byteSizeToStringFn: (size) => theConverter.bytes(size, 'catlist'),
 		renameViewDialogFn: (viewId, viewName) => {
-			const dialogEl = $$('dlgRenameView');
-			const inputEl = dialogEl.querySelector('input[type="text"]');
-			inputEl.value = viewName;
-			inputEl.dataset.viewId = viewId;
-			theDialogManager.show(dialogEl.id);
-			inputEl.focus();
+			theDialogManager.show("dlgRenameView");
+			$("#dlgRenameView input[type=text]").val(viewName).data({"view-id":viewId}).trigger("focus");
 		},
 		dStatus,
 		theUILang

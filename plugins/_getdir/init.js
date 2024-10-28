@@ -120,21 +120,17 @@ theWebUI.rDirBrowser = class {
 	}
 
 	requestDir() {
-		const path = this.edit.val();
-		if (path.length > 0 && !path.endsWith("/")) {
-			this.edit.val(path.slice(0, path.lastIndexOf("/") + 1));
-		}
 		$.ajax(
-			`plugins/_getdir/listdir.php?dir=${encodeURIComponent(this.edit.val())}&time=${(new Date()).getTime()}${this.withFiles ? "&withfiles=1" : ""}`,
+			`plugins/_getdir/listdir.php?dir=${encodeURIComponent(this.edit.val().replace(/\u00a0/g, " "))}&time=${(new Date()).getTime()}${this.withFiles ? "&withfiles=1" : ""}`,
 			{
 				success: (res) => {
 					this.frame.find(".filter-dir").val("").trigger("focus");
-					this.edit.val(res.path).data({cwd:res.path});
+					this.edit.val(res.path).data({cwd:res.path, previousValue:this.edit.val()}).change();
 					this.frame.find(".rmenuobj").remove();
 					this.frame.append(
 						$("<div>").addClass("rmenuobj").append(
-							...res.directories.map(ele => $("<div>").addClass("rmenuitem").text(ele + "/")),
-							...(this.withFiles ? res.files : []).map(ele => $("<div>").addClass("rmenuitem").text(ele)),
+							...res.directories.map(ele => $("<div>").addClass("rmenuitem").text(ele.replace(/ /g, "\u00a0") + "/")),
+							...(this.withFiles ? res.files : []).map(ele => $("<div>").addClass("rmenuitem").text(ele.replace(/ /g, "\u00a0"))),
 						),
 					);
 					this.frame.find(".rmenuitem").on(
@@ -151,8 +147,7 @@ theWebUI.rDirBrowser = class {
 	selectItem(ev) {
 		this.frame.find(".rmenuitem.active").removeClass("active");
 		$(ev.currentTarget).addClass("active");
-		this.edit.data('previousValue', this.edit.val());
-		this.edit.val(this.edit.data("cwd") + ev.target.innerText).trigger('change');
+		this.edit.val(this.edit.data("cwd") + ev.target.innerText);
 	}
 
 	show() {
