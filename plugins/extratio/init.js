@@ -75,7 +75,7 @@ plugin.loadRules = function( rle )
 	plugin.curRule = null;
 	var list = $("#rlsul");
 	list.empty();
-	plugin.rules = rle;
+	plugin.rules = rle || [];
 	plugin.maxRuleNo = 0;
 	for(var i=0; i<plugin.rules.length; i++)
 	{
@@ -174,13 +174,19 @@ theWebUI.downRatioRule = function()
 	}	
 }
 
-theWebUI.addNewRatioRule = function()
-{
-	var list = $("#rlsul");
+theWebUI.addNewRatioRule = function() {
+	const list = $("#rlsul");
 	plugin.maxRuleNo++;
 	var f = { name: theUILang.ratioNewRule, enabled: 1, pattern: "mininova.org", reason: 1, ratio: "", channel: "", no: plugin.maxRuleNo };
-	var i = plugin.rules.length;
-	list.append( $("<li>").html("<input type='checkbox' id='_rre"+i+"'/><input type='text' class='TextboxNormal' onfocus=\"theWebUI.selectRatioRule(this);\" id='_rrn"+i+"'/>"));
+	var i = plugin.rules?.length ?? 0;
+	list.append(
+		$("<li>").append(
+			$("<input>").attr({type:"checkbox", id:`_rre${i}`}),
+			$("<input>").attr({type:"text", id:`_rrn${i}`})
+				.addClass("TextboxNormal")
+				.on("focus", (ev) => theWebUI.selectRatioRule(ev.target)),
+		),
+	);
 	plugin.rules.push(f);
 	$("#_rrn"+i).val( f.name );
 	if(f.enabled)
@@ -306,15 +312,9 @@ plugin.correctCSS = function()
 	}
 }
 
-plugin.createPluginMenu = function()
-{
-	if(this.enabled)
-		theContextMenu.add([theUILang.mnu_ratiorule, "theWebUI.showRatioRules()"]);
-}
-
 plugin.onLangLoaded = function() {
-	this.registerTopMenu(7);
-	const dlgEditRatioRulesContent = $("<div>").addClass("cont fxcaret").append(
+	this.registerTopMenu(7, theUILang.mnu_ratiorule, theWebUI.showRatioRules);
+	const dlgEditRatioRulesContent = $("<div>").addClass("cont").append(
 		$("<div>").addClass("row").append(
 			$("<div>").addClass("col-md-6 d-flex flex-column align-items-center").append(
 				$("<div>").attr({id: "ratioRuleList"}).addClass("flex-grow-1 align-self-stretch").append(
@@ -322,13 +322,15 @@ plugin.onLangLoaded = function() {
 				),
 				$("<div>").attr({id: "exratio_buttons1"}).addClass("buttons-group-row").append(
 					...[
-						["ratAddRule", theUILang.ratAddRule, "addNewRatioRule"],
-						["ratDelRule", theUILang.ratDelRule, "deleteCurrentRatioRule"],
-						["ratUpRule", theUILang.ratUpRule, "upRatioRule"],
-						["ratDownRule", theUILang.ratDownRule, "downRatioRule"],
-					].map(([id, value, onclick]) => $("<input>").attr(
-						{type: "button", id: id, onclick: "theWebUI." + onclick + "(); return(false);"}
-					).addClass("Button").val(value)),
+						["ratAddRule", theUILang.ratAddRule, theWebUI.addNewRatioRule],
+						["ratDelRule", theUILang.ratDelRule, theWebUI.deleteCurrentRatioRule],
+						["ratUpRule", theUILang.ratUpRule, theWebUI.upRatioRule],
+						["ratDownRule", theUILang.ratDownRule, theWebUI.downRatioRule],
+					].map(([id, value, onclick]) => $("<button>")
+						.attr({type:"button", id:id})
+						.addClass("Button")
+						.on("click", onclick)
+						.text(value)),
 				),
 			),
 			$("<div>").addClass("col-md-6 flex-column align-items-stretch").append(
@@ -337,10 +339,13 @@ plugin.onLangLoaded = function() {
 					$("<div>").addClass("d-flex flex-row").append(
 						$("<select>").attr({id: "ratio_reason"}).addClass("flex-grow-1").append(
 							...[
+								// The order of these must match the RR_* constants
+								// in rules.php because we're currently using array
+								// position as an enum key
 								theUILang.ratLabelContain, 
 								theUILang.ratTrackerContain, 
-								theUILang.ratTrackerPublic, 
 								theUILang.ratTrackerPrivate,
+								theUILang.ratTrackerPublic,
 							].map((val, index) => $("<option>").attr({value: index}).text(val)),
 						),
 					),

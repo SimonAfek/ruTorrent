@@ -150,7 +150,7 @@ plugin.onLangLoaded = function() {
 	if(!plg.allStuffLoaded)
 		setTimeout(arguments.callee,1000);
 	else {
-		const dlgUnpackContent = $("<div>").addClass("cont fxcaret").append(
+		const dlgUnpackContent = $("<div>").addClass("cont").append(
 			$("<fieldset>").append(
 				$("<legend>").text(theUILang.unpackPath),
 				$("<div>").addClass("row").append(
@@ -172,7 +172,7 @@ plugin.onLangLoaded = function() {
 		plugin.attachPageToOptions(
 			$("<div>").attr({id:"st_unpack"}).append(
 				$("<fieldset>").append(
-					$("<legend>").text(theUILang.unpackPath),
+					$("<legend>").text(theUILang.unpack),
 					$("<div>").addClass("row").append(
 						$("<div>").addClass("col-12").append(
 							$("<input>").attr({type:"checkbox", id:"unpack_enabled", onchange:"linked(this, 0, ['edit_filter', 'edit_unpack1', 'edit_unpack1_btn']);"}),
@@ -180,6 +180,9 @@ plugin.onLangLoaded = function() {
 						),
 						$("<div>").addClass("col-12").append(
 							$("<input>").attr({type:"text", id:"edit_filter", maxlength:200}),
+						),
+						$("<div>").addClass("col-12").append(
+							$("<label>").attr({id:"lbl_edit_unpack1", for:"edit_unpack1"}).addClass("disabled").text(theUILang.unpackPath),
 						),
 						$("<div>").addClass("col-12").append(
 							$("<input>").attr({type:"text", id:"edit_unpack1", maxlength:200}),

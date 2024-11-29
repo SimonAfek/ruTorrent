@@ -11,23 +11,19 @@ class DnD {
 		const header = headers.length > 0 ? $(headers[0]) : this.obj;
 		this.options = options || {};
 		if (!this.options.left)
-			this.options.left = function() {return 0;};
+			this.options.left = 0;
 		if (!this.options.top)
-			this.options.top = function() {return 0;};
+			this.options.top = 0;
 		if (!this.options.right)
-			this.options.right = function() {return ($(window).width());};
+			this.options.right = (() => $(window).width())();
 		if (!this.options.bottom)
-			this.options.bottom = function() {return ($(window).height());};
+			this.options.bottom = (() => $(window).height())();
 		if (!this.options.onStart)
 			this.options.onStart = function() {return true;};
 		if (!this.options.onRun)
 			this.options.onRun = function() {};
 		if (!this.options.onFinish)
 			this.options.onFinish = function() {};
-		if (!this.options.maskId)
-			this.options.maskId = 'dragmask';
-		this.detachedMask = this.options.maskId !== id;
-		this.mask = $('#' + this.options.maskId);
 		header.off("mousedown");
 		header.on("mousedown", this, this.start);
 	}
@@ -35,17 +31,11 @@ class DnD {
 	start(e) {
 		// allow dnd only for medium-sized screens and up
 		if ($(window).width() < 768) return false;
+		// disallow dnd on links
+		if (e.target.tagName === "A") return false;
 
 		const self = e.data;
 		if (self.options.onStart(e)) {
-			const offs = self.obj.offset();
-			theDialogManager.bringToTop(self.obj.attr("id"));
-			theDialogManager.bringToTop(self.mask.attr("id"));
-			if (self.detachedMask) {
-				self.mask.css({left: offs.left, top: offs.top, width: self.obj.width(), height: self.obj.height()});
-				self.mask.show();
-			}
-			self.delta = {x: e.clientX - offs.left, y: e.clientY - offs.top};
 			$(document).on("mousemove", self, self.run);
 			$(document).on("mouseup", self, self.finish);
 		}
@@ -54,15 +44,24 @@ class DnD {
 
 	run(e) {
 		$("body").css({cursor:"grabbing"});
+		// `e.data` refers to the DnD object attached to the current dialog header
 		const self = e.data;
+
+		const offs = self.obj.offset();
 		if (!self.options.restrictX) {
-			self.mask.css({
-				left: Math.min(Math.max(self.options.left(), e.clientX), self.options.right()) - self.delta.x
+			self.obj.css({
+				left: Math.min(
+					Math.max(self.options.left, offs.left + e.originalEvent.movementX),
+					self.options.right,
+				),
 			});
 		}
 		if (!self.options.restrictY) {
-			self.mask.css({
-				top: Math.min(Math.max(self.options.top(), e.clientY), self.options.bottom()) - self.delta.y
+			self.obj.css({
+				top: Math.min(
+					Math.max(self.options.top, offs.top + e.originalEvent.movementY),
+					self.options.bottom,
+				),
 			});
 		}
 		self.options.onRun(e);
@@ -73,25 +72,6 @@ class DnD {
 		$("body").css({cursor:""});
 		const self = e.data;
 		self.options.onFinish(e);
-		if (self.detachedMask) {
-			const offs = self.mask.offset();
-			self.mask.hide();
-			self.obj.css(offs);
-			// move directory frames along with the dialog window
-			self.obj.find(".browseEdit").each((i, ele) => {
-				if ($(`#${ele.id}_frame`).css("display") !== "none") {
-					// move open ones only because they will automatically reposition
-					// when toggled open
-					const frameOffs = ele.getBoundingClientRect();
-					$(`#${ele.id}_frame`).css(
-						{
-							top: frameOffs.bottom,
-							left: frameOffs.left,
-						}
-					);
-				}
-			});
-		}
 		$(document).off("mousemove", self.run);
 		$(document).off("mouseup", self.finish);
 		return false;
@@ -107,15 +87,15 @@ var theDialogManager = {
 	modalState: false,
 
 	/**
-	 * Create a dialog window.
-	 * @param {string} id The HTML `id` of dialog window.
+	 * Create a new dialog window.
+	 * @param {string} id The HTML `id` of the dialog window.
 	 * @param {string} name The title shown in the header of the dialog window.
-	 * @param {string | object | object[]} content Content of the dialog window,
-	 * including the buttons in the footer. Can be an HTML string,
-	 * a jQuery object, or an array of jQuery objects.
+	 * @param {string | Object | Object[]} content Content of the dialog window,
+	 * including the buttons in the footer. Can be an HTML string, a jQuery object,
+	 * or an array of jQuery objects.
 	 * @param {boolean} isModal The modal state of the dialog window, default is `false`.
 	 * @param {boolean} noClose Whether to disable the close button, default is `false`.
-	 * @returns {object} The dialog manager object itself.
+	 * @returns {Object}
 	 */
 	make: function(id, name, content, isModal, noClose) {
 		if ($type(content) === "string") {
@@ -123,12 +103,12 @@ var theDialogManager = {
 		}
 		$("#dialog-container").append(
 			$("<div>").attr("id",id).addClass("dlg-window").append(
-				$("<div>").append(
-					$("<div>").attr({id:`${id}-header`}).addClass("dlg-header").text(name),
+				$("<div>").addClass("dlg-header").append(
+					$("<div>").attr({id:`${id}-header`}).text(name),
 					$("<a>").attr({href:"#"}).addClass("dlg-close"),
 				),
 				content,
-			),
+			).hide(),
 		);
 		return this.add(id, isModal, noClose);
 	},
@@ -141,6 +121,7 @@ var theDialogManager = {
 			nokeyclose: noClose,
 		});
 		if (!noClose)
+			// prevent dragging on close button
 			obj.find(".dlg-close").on("click", () => theDialogManager.hide(id));
 		var self = this;
 		var checkForButtons = function me(val) {
@@ -200,17 +181,25 @@ var theDialogManager = {
        		$('#modalbg').hide();
 		this.modalState = false;
 	},
-	show: function( id, callback )
-	{
-	        var obj = $('#'+id);
-	        if(obj.data("modal"))
+	show: function(id, callback) {
+		if ($(window).width() < 768) {
+			// Close side panel on mobile:
+			// An offcanvas is a modal under the hood and will intercept focus events
+			// from other elements, and make other text inputs unfocusable and uneditable.
+			bootstrap.Offcanvas.getOrCreateInstance(document.querySelector("#offcanvas-sidepanel")).hide();
+			// close collapsible top menu on opening dialog windows
+			bootstrap.Collapse.getOrCreateInstance("#top-menu").hide();
+		}
+
+		const obj = $('#' + id);
+		if (obj.data("modal"))
 			this.setModalState();
-	      	if($type(this.items[id]) && ($type(this.items[id].beforeShow)=="function"))
-	        	this.items[id].beforeShow(id);
+		if ($type(this.items[id]) && ($type(this.items[id].beforeShow)=="function"))
+			this.items[id].beforeShow(id);
 		this.center(id);
-		obj.show(obj.data("modal") ? null : this.divider,callback); 
-        	if($type(this.items[id]) && ($type(this.items[id].afterShow)=="function"))
-	        	this.items[id].afterShow(id);
+		obj.show(obj.data("modal") ? null : this.divider, callback);
+		if ($type(this.items[id]) && ($type(this.items[id].afterShow)=="function"))
+			this.items[id].afterShow(id);
 		this.bringToTop(id);
 	},
 	hide: function(id, callback) {
@@ -452,4 +441,3 @@ var theContextMenu =
 		return(false);
 	}
 }
-

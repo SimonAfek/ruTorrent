@@ -4,7 +4,7 @@
  */
 
 var theWebUI = {
-	version: "5.B.3",
+	version: "5.1.0",
 	tables: {
 		trt: {
 			obj: new dxSTable(),
@@ -122,7 +122,8 @@ var theWebUI = {
 		"webui.reqtimeout":		10000,
 		"webui.confirm_when_deleting":	1,
 		"webui.alternate_color":	0,
-		"webui.side_panel_min_width": 	280,
+		"webui.side_panel_min_width": 	200,
+		"webui.side_panel_max_width_percent": 35,
 		"webui.list_table_min_height": 	300,
 		"webui.update_interval":	2500,
 		"webui.hsplit":			0.88,
@@ -160,6 +161,10 @@ var theWebUI = {
 		"webui.show_open_status":	1,
 		"webui.show_view_panel": 1,
 		"webui.register_magnet":	0,
+		"webui.not_add_path":		0,
+		"webui.torrents_start_stopped":	0,
+		"webui.fast_resume":		0,
+		"webui.randomize_hash":	0,
 		...(() => {
 			const defaults = {};
 			const units = ['default', 'kb', 'mb', 'gb', 'tb', 'pb'];
@@ -315,6 +320,7 @@ var theWebUI = {
 				theSearchEngines.run()
 			}
 		});
+		$("#clear_log").on("click", () => $("#clear_log").siblings().remove());
 
 		$(document).on( browser.isOpera ? 'keypress' : 'keydown', keyEvent);
 	},
@@ -370,9 +376,9 @@ var theWebUI = {
 	},
 
 	config: function() {
-		$.each(this.tables, function(key, table) {
-			var width = theWebUI.settings["webui." + key + ".colwidth"];
-			var enabled = theWebUI.settings["webui." + key + ".colenabled"];
+		$.each(this.tables, function(ndx,table) {
+			var width = theWebUI.settings["webui."+ndx+".colwidth"];
+			var enabled = theWebUI.settings["webui."+ndx+".colenabled"];
 			$.each(table.columns, function(i,col) {
 				if(width && i<width.length && width[i]>4)
 					col.width = width[i];
@@ -388,17 +394,17 @@ var theWebUI = {
 			table.obj.colorEvenRows = theWebUI.settings["webui.alternate_color"];
 			table.obj.maxRows = iv(theWebUI.settings["webui.fullrows"]);
 			table.obj.noDelayingDraw = iv(theWebUI.settings["webui.no_delaying_draw"]);
-			if($type(theWebUI.settings["webui." + key + ".sindex"]))
-				table.obj.sortId = theWebUI.settings["webui." + key + ".sindex"];
-			if($type(theWebUI.settings["webui." + key + ".rev"]))
-				table.obj.reverse = iv(theWebUI.settings["webui." + key + ".rev"]);
-			if($type(theWebUI.settings["webui." + key + ".sindex2"]))
-				table.obj.sortId2 = theWebUI.settings["webui." + key + ".sindex2"];
-			if($type(theWebUI.settings["webui." + key + ".rev2"]))
-				table.obj.secRev = iv(theWebUI.settings["webui." + key + ".rev2"]);
-			if($type(theWebUI.settings["webui." + key + ".colorder"]))
-				table.obj.colOrder = theWebUI.settings["webui." + key + ".colorder"];
-			table.obj.onsort = () => {
+			if($type(theWebUI.settings["webui."+ndx+".sindex"]))
+				table.obj.sortId = theWebUI.settings["webui."+ndx+".sindex"];
+			if($type(theWebUI.settings["webui."+ndx+".rev"]))
+				table.obj.reverse = iv(theWebUI.settings["webui."+ndx+".rev"]);
+			if($type(theWebUI.settings["webui."+ndx+".sindex2"]))
+				table.obj.sortId2 = theWebUI.settings["webui."+ndx+".sindex2"];
+			if($type(theWebUI.settings["webui."+ndx+".rev2"]))
+				table.obj.secRev = iv(theWebUI.settings["webui."+ndx+".rev2"]);
+			if($type(theWebUI.settings["webui."+ndx+".colorder"]))
+				table.obj.colOrder = theWebUI.settings["webui."+ndx+".colorder"];
+			table.obj.onsort = function() {
 				if (
 					(this.sortId != theWebUI.settings["webui."+this.prefix+".sindex"]) ||
 					(this.reverse != theWebUI.settings["webui."+this.prefix+".rev"]) ||
@@ -438,19 +444,20 @@ var theWebUI = {
 		this.activeView = tab;
 
 		if (!this.settings["webui.show_cats"]) {
-			$("#side-panel").addClass("d-none");
-			$("#HDivider").addClass("d-none");
+			$("#offcanvas-sidepanel, #HDivider").hide();
+		} else {
+			$("#offcanvas-sidepanel, #HDivider").show();
 		}
 		if (!this.settings["webui.show_dets"] || !theWebUI.systemInfo.rTorrent.started) {
-			$("#tdetails").addClass("d-none");
-			$("#tdetails").removeClass("d-flex");
-			$("#VDivider").addClass("d-none")
+			$("#tdetails, #VDivider").hide();
+		} else {
+			$("#tdetails, #VDivider").show();
 		}
 		theDialogManager.setEffects( iv(this.settings["webui.effects"])*200 );
 //		this.setStatusUpdate();
-		$.each(this.tables, function(key,table)
+		$.each(this.tables, function(ndx,table)
 		{
-			table.obj.create($$(table.container), table.columns, key);
+			table.obj.create($$(table.container), table.columns, ndx);
 			// legacy support of numeric sortId, sortId2
 			for(const name of ['sortId', 'sortId2']) {
 				const col = Number.parseInt(table.obj[name]);
@@ -462,7 +469,7 @@ var theWebUI = {
 		table = this.getTable("plg");
 		if(table)
 		{
-			$.each( thePlugins.list, function(key,plugin)
+			$.each( thePlugins.list, function(ndx,plugin)
 			{
 				table.addRowById(
 				{
@@ -532,15 +539,6 @@ var theWebUI = {
 //
 // plugins
 //
-
-	showPluginsMenu: function()
-	{
-		theContextMenu.clear();
-		for( var item in thePlugins.topMenu )
-			thePlugins.get(thePlugins.topMenu[item].name).createPluginMenu();
-        	var offs = $("#plugins").offset();
-		theContextMenu.show(offs.left-5,offs.top+5+$("#plugins").height());
-	},
 
 	plgSelect: function(e, id)
 	{
@@ -618,7 +616,7 @@ var theWebUI = {
         plgRefresh : function()
         {
         	table = this.getTable("plg");
-		$.each( thePlugins.list, function(key,plugin)
+		$.each( thePlugins.list, function(ndx,plugin)
 		{
 			table.setValueById( "_plg_"+plugin.name, "status", plugin.enabled ? 1 : 0 );
 			table.setValueById( "_plg_"+plugin.name, "launch", plugin.launched ? (plugin.canBeLaunched() ? 1 : 2) : 0 );
@@ -718,8 +716,7 @@ var theWebUI = {
 					if((/^webui\./).test(i))
 					{
 						needSave = true;
-						switch(i)
-						{
+						switch(i) {
 						        case "webui.effects":
 						        {
 								theDialogManager.setEffects( iv(nv)*200 );
@@ -727,16 +724,15 @@ var theWebUI = {
 							}
 							case "webui.alternate_color":
 							{
-								$.each(theWebUI.tables, function(key,table)
+								$.each(theWebUI.tables, function(ndx,table)
 								{
 							  		table.obj.colorEvenRows = nv;
 						     			table.obj.refreshSelection();
 								});
 								break;
 							}
-							case "webui.show_cats":
-							{
-								$("#side-panel").toggle();
+							case "webui.show_cats": {
+								$("#offcanvas-sidepanel").toggle();
 								needResize = true;
 								break;
 							}
@@ -759,7 +755,7 @@ var theWebUI = {
 							}
 							case "webui.fullrows":
 							{
-								$.each(theWebUI.tables, function(key,table)
+								$.each(theWebUI.tables, function(ndx,table)
 								{
 						      			table.obj.maxRows = iv(nv);
 						      			table.obj.refreshRows();
@@ -768,7 +764,7 @@ var theWebUI = {
 							}
 							case "webui.no_delaying_draw":
 							{
-								$.each(theWebUI.tables, function(key,table)
+								$.each(theWebUI.tables, function(ndx,table)
 								{
 						      			table.obj.noDelayingDraw = iv(nv);
 								});
@@ -850,7 +846,7 @@ var theWebUI = {
 	{
 	        if(!theWebUI.configured)
 			return;
-	        $.each(theWebUI.tables, function(key,table)
+	        $.each(theWebUI.tables, function(ndx,table)
 		{
 	   		var width = [];
 	   		var enabled = [];
@@ -859,13 +855,13 @@ var theWebUI = {
       				width.push( table.obj.getColWidth(i) );
 	      			enabled.push( table.obj.isColumnEnabled(i) );
 			}
-			theWebUI.settings["webui."+key+".colwidth"] = width;
-			theWebUI.settings["webui."+key+".colenabled"] = enabled;
-			theWebUI.settings["webui."+key+".colorder"] = table.obj.colOrder;
-			theWebUI.settings["webui."+key+".sindex"] = table.obj.sortId;
-			theWebUI.settings["webui."+key+".rev"] = table.obj.reverse;
-			theWebUI.settings["webui."+key+".sindex2"] = table.obj.sortId2;
-			theWebUI.settings["webui."+key+".rev2"] = table.obj.secRev;
+			theWebUI.settings["webui."+ndx+".colwidth"] = width;
+			theWebUI.settings["webui."+ndx+".colenabled"] = enabled;
+			theWebUI.settings["webui."+ndx+".colorder"] = table.obj.colOrder;
+			theWebUI.settings["webui."+ndx+".sindex"] = table.obj.sortId;
+			theWebUI.settings["webui."+ndx+".rev"] = table.obj.reverse;
+			theWebUI.settings["webui."+ndx+".sindex2"] = table.obj.sortId2;
+			theWebUI.settings["webui."+ndx+".rev2"] = table.obj.secRev;
 		});
 
 		theWebUI.settings['webui.selected_tab.last'] = theWebUI.activeView;
@@ -2229,22 +2225,27 @@ var theWebUI = {
 		if (!w)
 			return;
 		const offcanvas = $("#offcanvas-sidepanel");
-		if (theWebUI.settings["webui.list_table_min_height"]) {
-			w = Math.max(w, parseFloat(theWebUI.settings["webui.side_panel_min_width"]));
+		if (theWebUI.settings["webui.side_panel_min_width"]) {
+			w = Math.max(w, ir(theWebUI.settings["webui.side_panel_min_width"]));
+		}
+		if (theWebUI.settings["webui.side_panel_max_width_percent"]) {
+			w = Math.min(w, $(window).width() * ir(theWebUI.settings["webui.side_panel_max_width_percent"]) / 100);
 		}
 		if (offcanvas.css("display") === "none") {
 			// Senerio 1: when side panel is toggled off
-			$("#HDivider").addClass("d-md-none").removeClass("d-md-block");
+			$("#HDivider").hide();
 			$("#main-info").width($("#maincont").width());
 		} else {
 			// When side panel is toggled on
 			if ($(window).width() < 768) {
 				// Senerio 2: small screens and below
 				offcanvas.width("");
+				$("#HDivider").hide();
 				$("#main-info").width($("#maincont").width());
 			} else {
 				// Senerio 3: medium screens and above
 				offcanvas.width(w);
+				$("#HDivider").show();
 				$("#main-info").width($("#maincont").width() - 5 - w);
 			}
 		}
@@ -2255,7 +2256,7 @@ var theWebUI = {
 		if (!h)
 			return
 		if (theWebUI.settings["webui.list_table_min_height"]) {
-			h = Math.max(h, parseFloat(theWebUI.settings["webui.list_table_min_height"]));
+			h = Math.max(h, ir(theWebUI.settings["webui.list_table_min_height"]));
 		}
 		if ($("#tdetails").css("display") !== "none") {
 			$("#list-table").height(h);
@@ -2284,6 +2285,10 @@ var theWebUI = {
 		theWebUI.resizeTop(null, h);
 		// center any open dialog
 		theDialogManager.visible.forEach(id => theDialogManager.center(id));
+		if ($(window).width < 768) {
+			// close collapsible top menu
+			bootstrap.Collapse.getOrCreateInstance("#top-menu").hide();
+		}
 	},
 
 	update: function()
@@ -2304,7 +2309,7 @@ var theWebUI = {
 	},
 
 	setHSplitter: function() {
-		let r = 1 - $("#side-panel").outerWidth() / $("#maincont").width();
+		let r = 1 - $("#offcanvas-sidepanel").outerWidth() / $("#maincont").width();
 		r = Math.floor(r * 1000) / 1000;
 		if ((theWebUI.settings["webui.hsplit"] !== r) && (r > 0) && (r < 1)) {
 			theWebUI.settings["webui.hsplit"] = r;
@@ -2331,8 +2336,11 @@ var theWebUI = {
 			return;
 		}
 		this.settings["webui.show_cats"] = !this.settings["webui.show_cats"];
-		$("#offcanvas-sidepanel").toggleClass("d-md-none");
-		$("#HDivider").toggleClass("d-md-none d-md-block");
+		if (this.settings["webui.show_cats"]) {
+			$("#offcanvas-sidepanel, #HDivider").show();
+		} else {
+			$("#offcanvas-sidepanel, #HDivider").hide();
+		}
     this.resize();
 		this.save();
 	},
@@ -2471,17 +2479,24 @@ function createCategoryList(catModule) {
 	theDialogManager.make(
 		"dlgRenameView",
 		theUILang.RenameView,
-		$$('pview-rename-dialog-template').innerHTML,
-		true
-	);
-	$$('dlgRenameView')
-		.querySelector('button[value="confirm"]')
-		.addEventListener("click", function () {
-			const dialogEl = $$('dlgRenameView');
-			const inputEl = dialogEl.querySelector('input[type="text"]');
-			categoryList.renameView(inputEl.dataset.viewId, inputEl.value);
-			theDialogManager.hide('dlgRenameView');
-		},
+		[
+			$("<div>").addClass("cont").append(
+				$("<div>").addClass("row").append(
+					$("<div>").addClass("col-12").append(
+						$("<input>").attr({type:"text"}).on("focus", (ev) => ev.target.select()),
+					),
+				),
+			),
+			$("<div>").addClass("buttons-list").append(
+				$("<button>").val("confirm").on("click", () => {
+					const inputEl = $("#dlgRenameView input[type=text]");
+					categoryList.renameView(inputEl.data("view-id"), inputEl.val())
+					theDialogManager.hide('dlgRenameView');
+				}).text(theUILang.ok),
+				$("<button>").addClass("Cancel").text(theUILang.Cancel),
+			),
+		],
+		true,
 	);
 	const categoryList = new catModule.CategoryList({
 		panelAttribs: catList.panelAttribs,
@@ -2513,12 +2528,8 @@ function createCategoryList(catModule) {
 		onConfigChangeFn: theWebUI.save.bind(theWebUI),
 		byteSizeToStringFn: (size) => theConverter.bytes(size, 'catlist'),
 		renameViewDialogFn: (viewId, viewName) => {
-			const dialogEl = $$('dlgRenameView');
-			const inputEl = dialogEl.querySelector('input[type="text"]');
-			inputEl.value = viewName;
-			inputEl.dataset.viewId = viewId;
-			theDialogManager.show(dialogEl.id);
-			inputEl.focus();
+			theDialogManager.show("dlgRenameView");
+			$("#dlgRenameView input[type=text]").val(viewName).data({"view-id":viewId}).trigger("focus");
 		},
 		dStatus,
 		theUILang

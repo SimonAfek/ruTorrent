@@ -18,14 +18,12 @@
   color: windowtext;
   padding: 0.15rem;
   text-wrap: nowrap;
+
+  /* whitespace here is deliberate, and should be shown as we set it */
+  white-space: pre;
 }
 .rmenuitem.active {
   color: highlighttext;
   background-color: highlight;
 }
-
-input.browseButton, button.browseButton {
-  width: 30px;
-  margin-left: 0.25rem;
-  margin-right: 0.25rem;
-}
+.browseButton {width: 30px;}

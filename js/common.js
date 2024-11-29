@@ -190,40 +190,54 @@ function addslashes(str)
 	return( (str + '').replace(/[\\"']/g, '\\$&').replace(/\u0000/g, '\\0').replace(/\u000A/g, '\\n').replace(/\u000D/g, '\\r') );
 }
 
-function iv(val)
-{
-	var v = (val==null) ? 0 : parseInt(val + "");
-	return(isNaN(v) ? 0 : v);
+/**
+ * A ruTorrent wrapper to parse an input value as an integer.
+ * @param {any} val Input value to be parsed as an integer.
+ * @returns {number} The parsed result as an integer.
+ */
+function iv(val) {
+	const v = (!val) ? 0 : parseInt(val + "");
+	return isNaN(v) ? 0 : v;
 }
 
-function ir(val)
-{
-	var v = (val==null) ? 0 : parseFloat(val + "");
-	return(isNaN(v) ? 0 : v);
+/**
+ * A ruTorrent wrapper to parse an input value as n float.
+ * @param {any} val Input value to be parsed as a float.
+ * @returns {number} The parsed result as a float.
+ */
+function ir(val) {
+	const v = (!val) ? 0 : parseFloat(val + "");
+	return isNaN(v) ? 0 : v;
 }
 
-function linked(obj, _33, lst)
-{
-	var tn = obj.tagName.toLowerCase();
-	if((tn == "input") && (obj.type == "checkbox"))
+/**
+ * Link the enabled status of a series of HTML elements
+ * with a checkbox or a dropdown select.
+ * @param {HTMLInputElement | HTMLSelectElement} obj The HTML element
+ * to be linked to.
+ * @param {boolean | string} _33 An additional option when linking.
+ * 
+ * (1) When linking to a checkbox, a falsey value will enable the linked
+ * objects when the checkbox is checked on.
+ * 
+ * (2) When linking to a dropdown select, it should be one of the values
+ * from the options, which will disable the linked elements when selected.
+ * @param {string[]} lst An array of HTML `id`s of elements to be linked.
+ */
+function linked(obj, _33, lst) {
+	const tn = obj.tagName.toLowerCase();
+	if ((tn === "input") && (obj.type === "checkbox"))
 		var d = _33 ? obj.checked : !obj.checked;
-	else
-		if(tn == "select")
-		{
-			var v = obj.options[obj.selectedIndex].value;
-			var d = (v == _33) ? true : false;
-		}
-	for(var i = 0; i < lst.length; i++)
-	{
-		var o = $$(lst[i]);
-		if(o)
-		{
-			o.disabled = d;
-			o = $$("lbl_" + lst[i]);
-			if(o)
-				o.className = (d) ? "disabled" : "";
-		}
-   	}
+	else if (tn === "select") {
+		var v = obj.options[obj.selectedIndex].value;
+		var d = (v === _33) ? true : false;
+	} else {
+		return;
+	}
+	lst.forEach(id => {
+		$(`#${id}`).prop({disabled:d});
+		d ? $(`#lbl_${id}`).addClass("disabled") : $(`#lbl_${id}`).removeClass("disabled");
+	});
 }
 
 function escapeHTML(str)
@@ -807,14 +821,6 @@ var theTabs = {
 				).on("click", (ev) => ev.target.blur()).addClass("nav-link").text(name),
 			)),
 		);
-		$("#tab_lcont").after(
-			$("<button>").attr(
-				{type:"button", id:"clear_log"}
-			).addClass('Button mx-2').text(theUILang.ClearButton).hide().on(
-				'click', () => $("#lcont").empty()
-			).on('focus', function() {
-				this.blur();
-			}));
 		this.show("gcont");
 		$('#gcont,#lcont').enableSysMenu();
 	},
@@ -861,15 +867,11 @@ var theTabs = {
                				        theWebUI.getTable(prefix).refreshRows();
                				theWebUI.setActiveView(id);
             				l.addClass("selected").css("z-index",1);
-	            			if(n=="lcont")
-		            			$("#clear_log").css("display","inline");
             			}
          			else
          			{
             				p.hide();
             				l.removeClass("selected").css("z-index",0);
-	            			if(n=="lcont")
-		            			$("#clear_log").hide();
             			}
          		}
       		}

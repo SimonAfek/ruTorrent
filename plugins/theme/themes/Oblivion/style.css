@@ -1,24 +1,44 @@
 html, body {font-family: "Lucida Sans Unicode", "Lucida Grande", Tahoma, Arial, Helvetica, sans-serif;background-color: #000;color: #ffffff;text-shadow:0px -1px 0px #000;scrollbar-base-color:#181818; }
 :root {
   --menu-color: #757571;
-  --menu-background-color: transparent;
+  --menu-background-color: #121212;
+  --menu-border-color: #333333;
 
   --menu-disabled-color: #333333;
+  --menu-disabled-background-color: #121212;
 
-  --menu-border-color: #333333;
-  --menu-highlight-color: #fff;
-  --menu-highlight-background-color: #888888;
+  --menu-highlight-color: #ffffff;
+  --menu-highlight-background-color: #121212;
 
   --settings-background-color: #181818;
-
+  --container-bg-color: #181818;
+  --container-border-color: #333333;
   --btn-bg-color: #515151;
+  --header-bg-color: #222222;
+  --header-border-color: #333333;
+  --dialog-bg-color: #222222;
+  --dialog-border-color: #333333;
+
+  --navbar-height: 36px;
+  --navbar-bg-color: #181818;
+  --navbar-bg-image: linear-gradient(0deg, rgba(24,24,24,1) 0%, rgba(33,33,33,1) 100%);
+  --navbar-border-color: transparent;
+  --navbar-item-bg-color: linear-gradient(0deg, rgba(17,17,17,1) 0%, rgba(46,46,46,1) 100%);
+  --navbar-item-border-color: #0f0f0f;
+  --loading-indicator-icon: url(../plugins/theme/themes/Oblivion/images/ajax-loader.gif);
+  --loading-indicator-side-length: 32px;
+}
+category-panel {
+  --open-background-image: url(../plugins/theme/themes/Oblivion/images/pnl_open.png);
+  --close-background-image: url(../plugins/theme/themes/Oblivion/images/pnl_close.png);
+  --heading-background-color: linear-gradient(0deg, rgba(2,0,36,1) 0%, rgba(7,7,99,0.75) 0%, rgba(8,8,105,1) 0%, rgba(10,10,10,1) 0%, rgba(40,40,40,1) 100%);
+  --heading-border-color: #333333;
 }
 
 button, input[type=button], input[type=submit], .Button {
   border: 1px solid #000;
   background: var(--btn-bg-color) url(./images/headers.png) repeat-x 0px 0px;
   color:#AACF27;
-  cursor: pointer;
   font-weight: bold;
   text-shadow:0px -1px 0px #000;
   -moz-border-radius: 5px;
@@ -34,33 +54,22 @@ button:not([disabled]):hover:active, input.Button:not([disabled]):hover:active {
 
 #offcanvas-sidepanel {
   color: #626262;
-  background-color: #212121;
 }
-#side-panel, category-list {
+category-list {
   border:none;
   background-color: #212121;
   border-right: 1px solid #1b1b1b;
   border-left: 1px solid #070707;
 }
 
-category-panel {
-  --open-background-image: url(../plugins/theme/themes/Oblivion/images/pnl_open.gif);
-  --close-background-image: url(../plugins/theme/themes/Oblivion/images/pnl_close.gif);
-}
-
 category-panel::part(heading) {
   font-size:12px;
   font-family:inherit;
-  padding: 2px 24px;
   height:25px;
   line-height:25px;
-  background-color: #232323;
   font-weight: bold;
   color:#DCDCDC;
   text-shadow: 0px -1px 0px #000;
-  border-top:1px solid #333;
-  border-bottom: none;
-  border-right: none;
 }
 
 panel-label {
@@ -131,22 +140,15 @@ ul.CMenu li:hover ul li a:hover { text-shadow:0px -1px 0px #000;}
 
 #sel {border: 1px dotted #555555;}
 
-div#t {background: #000 url(./images/headers.png) repeat-x 0px -252px; border-bottom: none;}
-#top-menu {
-  background-color: #000;
-  border-bottom: none;
-}
-div#t button.navbar-toggler {
+.navbar-toggler {
   background-image: none;
   border-color: #0F0F0F;
 }
-div#t .nav-link {
-  background: #000 url(./images/headers.png) repeat-x 0px 0px;
-  border-color: #0F0F0F;
+#t .nav-link {
   color: #626262;
   font-weight: bold;
 }
-div#t a:hover {background: none;}
+#t .nav-link:hover {background: none;}
 div#t div.TB_Separator {border-right:1px solid #262626;background-color: #000;height:35px;margin:0px 0px 0px 5px}
 div#t div#add {background: transparent url(./images/toolbar.png) no-repeat 0px 0px}
 div#t div#add:hover {background: transparent url(./images/toolbar.png) no-repeat px -24px}
@@ -218,7 +220,6 @@ div.graph_tab {color:#FFF; background-color: #181818}
 
 div#modalbg {background-color: #181818;}
 
-#list-table {margin-right:6px;border-top: 1px solid #333; border-right: 1px solid #070707; border-left: 1px solid #1b1b1b; border-bottom: 1px solid #000000; background-color: #181818;}
 div#FileList, div#TrackerList, div#PeerList, div#Speed {background-color: #181818}
 
 .lm li div > div {
@@ -235,13 +236,11 @@ div#FileList, div#TrackerList, div#PeerList, div#Speed {background-color: #18181
 .lm li a.focus {background-color: #333333}
 .stg_con {background-color: #181818}
 * > fieldset {border: 1px solid #333333}
-input.disabled {background-color: #181818; color: #333333; border: 1px solid #333333}
+input.disabled, button.disabled {background-color: #181818; color: #333333; border: 1px solid #333333}
 td.disabled, label.disabled, span.disabled, div.disabled {color: #333333}
 legend {color: #888888}
 select.cols {border: 1px solid #333333}
-div#dragmask {border: 1px dotted #333333}
 div#tdetails {padding:0px;margin:0px;background-color: #181818;color:#888888;-moz-border-radius-topleft:5px; -webkit-border-top-left-radius:5px;-moz-border-radius-topright:5px;-webkit-border-top-right-radius:5px;border-top-right-radius:5px;border-top-left-radius:5px;}
-div#tdcont {background: #181818; border-top: none; border-right: 1px solid #070707; border-left: 1px solid #1b1b1b; border-bottom: 1px solid #000000;}
 
 /*TABBED MENU */
 .tabbar {
@@ -271,18 +270,31 @@ div#tdcont {background: #181818; border-top: none; border-right: 1px solid #0707
 
 /* DIALOGS */
 div#dlgProps textarea#prop-trackers {background: #222222; border: 1px solid #333333}
-div.dlg-window {background-color: #222222; box-shadow: 2px 2px 5px #888; color: #fff; border-top: 1px solid #333; border-right: 1px solid #1b1b1b; border-left: 1px solid #1b1b1b; border-bottom: 1px solid #000000;	}
-div.dlg-header { background-color: #222222; border-bottom: 1px solid #333333}
-div#yesnoDlg div.dlg-header {background: #181818 url(./images/dlg-toolbars.gif) no-repeat 0px -120px; border-bottom: 1px solid #333333;text-shadow:0px -1px 0px #000;}
-div#stg-header {background: #181818 url(./images/dlg-toolbars.gif) no-repeat 0px -72px; border-bottom: 1px solid #333333;text-shadow:0px -1px 0px #000;}
+.dlg-window {box-shadow: 2px 2px 5px #888; color: #fff; border-top-color: #333; border-right-color: #1b1b1b; border-left-color: #1b1b1b; border-bottom-color: #000000;}
+.dlg-header {background: linear-gradient(0deg, rgba(11,11,11,1), rgba(44,44,44,1) 100%);}
+.dlg-header > div:first-child {
+  padding-left: 3rem;
+  text-shadow:0px -1px 0px #000;
+}
+#yesnoDlg-header {
+  background-image: url(./images/dlg-toolbars.gif);
+  background-position-y: -120px;
+}
+#stg-header {
+  background-image: url(./images/dlg-toolbars.gif);
+  background-position-y: -72px;
+}
 div#stg .lm {background-color: #181818; border: 1px solid #333333}
-div#dlgHelp-header,div#dlgHelp div.dlg-header {background: #181818 url(./images/dlg-toolbars.gif) no-repeat 0px -96px;text-shadow:0px -1px 0px #000;}
-
-div#tadd-header {background: #181818 url(./images/dlg-toolbars.gif) no-repeat 0px 0px; border-bottom: 1px solid #333333;text-shadow:0px -1px 0px #000;}
+#dlgHelp-header, #dlgAbout-header {
+  background-image: url(./images/dlg-toolbars.gif);
+  background-position-y: -96px;
+}
+#tadd-header {
+  background-image: url(./images/dlg-toolbars.gif);
+  background-position-y: 0px;
+}
 
 div.tab {background-color: #181818}
-
-div#t div#ind {background: transparent url(./images/ajax-loader.gif) no-repeat 0px center;}
 
 span#loadimg {background: transparent url(./images/ajax-loader.gif) no-repeat center center; }
 /*Scrollbars*/
@@ -351,12 +363,4 @@ span.det {color:#fff;}
     width: 0;
     height: 0;
     display: none;
-}
-
-@media (min-width: 768px) { 
-  /* Custom rules for medium devices */
-  div#t .nav-link {
-    background: none;
-    border: none;
-  }
 }

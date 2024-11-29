@@ -10,12 +10,25 @@ class recentTrackers
 	public $hash = "rtrackers.dat";
 	public $modified = false;
 	public $list = array();
+	public $last_used = array();
+	public $piece_size = 1024;
+	public $start_seeding = false;
+	public $private_torrent = false;
+	public $hybrid_torrent = false;
 
 	static public function load()
 	{
 		$cache = new rCache();
 		$rt = new recentTrackers();
 		$cache->get($rt);
+
+		// TODO: Temporary migration from string to array
+		// Can remove this after November 2026
+		if (is_string(($rt->last_used)))
+		{
+			$rt->last_used = [];
+		}
+
 		return($rt);
 	}
 	public function store()
@@ -34,12 +47,30 @@ class recentTrackers
 	{
 		$ret = array();
 		foreach( $this->list as $ann )
-			$ret[self::getTrackerDomain($ann)] = $ann;
+			$ret['recent_trackers'][self::getTrackerDomain($ann)] = $ann;
+		$ret['last_used'] = $this->last_used;
+		$ret['piece_size'] = $this->piece_size;
+		$ret['start_seeding'] =  $this->start_seeding;
+		$ret['private_torrent'] = $this->private_torrent;
+		$ret['hybrid_torrent'] = $this->hybrid_torrent;
+
 		return($ret);
 	}
 	public function strip()
 	{
 		global $recentTrackersMaxCount;
+		for ($i = count($this->last_used) - 1; $i >= 0; $i--)
+		# remove trailing white spaces and preserve those in between from last used array
+		{ 
+			if( strlen(trim($this->last_used[$i])) < 1 )
+			{
+				array_pop($this->last_used);
+			}
+			else
+			{
+				break;
+			}
+		}
 		$this->list = array_values( array_unique($this->list) );
 		$cnt = count($this->list);
 		$arr = array_values($this->list);
@@ -104,51 +135,49 @@ if(isset($_REQUEST['cmd']))
 				}
 				$newList = array_diff($rt->list,$trk);
 				if( $newList !== $rt->list )
-					$ret = $rt->delete($newList);
+					$rt->delete($newList);
+				$ret = $rt->get();
 			}
 			break;
 		}
 		case "create":
 		{
 			$error = "Invalid parameters";
-		        if(isset($_REQUEST['path_edit']))
-		        {
-		        	$path_edit = trim($_REQUEST['path_edit']);
+			if(isset($_REQUEST['path_edit']) && strlen($_REQUEST['path_edit']))
+			{
+				$path_edit = trim($_REQUEST['path_edit']);
 				if(is_dir($path_edit))
 					$path_edit = FileUtil::addslash($path_edit);
-		        	if(rTorrentSettings::get()->correctDirectory($path_edit))
+				if(rTorrentSettings::get()->correctDirectory($path_edit))
 				{
 					$rt = recentTrackers::load();
 					$trackers = array();
-					$announce_list = '';
 					if(isset($_REQUEST['trackers']))
 					{
-						$arr = explode("\r",$_REQUEST['trackers']);
-						foreach( $arr as $key => $value )
+						$trackers = explode("\r", $_REQUEST['trackers']);
+						foreach( $trackers as $key => $value )
 						{
 							$value = trim($value);
-							if(strlen($value))
+							if(strlen($value) === 0)
 							{
-								$trackers[] = $value;
-								$rt->list[] = $value;
-                                                        }
-                                                        else
-							{
-								if(count($trackers)>0)
-								{
-									$announce_list .= (' -a '.escapeshellarg(implode(',',$trackers)));
-									$trackers = array();
-								}
+								continue;
 							}
+
+							$rt->list[] = $value;
 						}
 					}
+					// remember checkbox and dropdown options
+					$rt->last_used = $trackers;
+					$rt->piece_size = $_REQUEST['piece_size'];
+					$rt->start_seeding = $_REQUEST['start_seeding'];
+					$rt->private_torrent = $_REQUEST['private'];
+					$rt->hybrid_torrent = $_REQUEST['hybrid'];
 					$rt->store();
-					if(count($trackers)>0)
-						$announce_list .= (' -a '.escapeshellarg(implode(',',$trackers)));
+
 					$piece_size = 262144;
 					if(isset($_REQUEST['piece_size']))
 						$piece_size = $_REQUEST['piece_size']*1024;
-	       				if(!$pathToCreatetorrent || ($pathToCreatetorrent==""))
+					if(!$pathToCreatetorrent || ($pathToCreatetorrent==""))
 						$pathToCreatetorrent = $useExternal;
 					if($useExternal=="mktorrent")
 						$piece_size = log($piece_size,2);

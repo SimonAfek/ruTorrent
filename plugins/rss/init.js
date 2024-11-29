@@ -889,7 +889,7 @@ theWebUI.loadFiltersWithAdditions = function( flt )
 				ret = ret + "\\";
 			ret+=c;
 		}
-		return(ret+"$/");
+		return(ret+"$/i");
 	}
 
 	var additions = [];
@@ -968,7 +968,7 @@ theWebUI.addNewFilter = function()
 {
 	var list = $("#fltlist");
 	theWebUI.maxFilterNo++;
-	var f = { name: theUILang.rssNewFilter, enabled: 1, pattern: "", exclude: "", label: "", hash: "", start: 1, add_path: 1, dir: "", throttle: "", ratio: "", chktitle: 1, chkdesc: 0, chklink: 0, interval: -1, no: theWebUI.maxFilterNo };
+	var f = { name: theUILang.rssNewFilter, enabled: 1, pattern: "/^"+theUILang.rssPatternExample+"$/i", exclude: "", label: "", hash: "", start: 1, add_path: 1, dir: "", throttle: "", ratio: "", chktitle: 1, chkdesc: 0, chklink: 0, interval: -1, no: theWebUI.maxFilterNo };
 	var i = this.filters.length;
 	list.append( $("<li>").html("<input type='checkbox' id='_fe"+i+"'/><input type='text' class='TextboxNormal' onfocus=\"theWebUI.selectFilter(this);\" id='_fn"+i+"'/>"));
 	this.filters.push(f);
@@ -1340,7 +1340,7 @@ plugin.onLangLoaded = function()
 		theUILang.rssFeeds,
 	);
 	
-	const dlgAddRSSContent = $("<div>").addClass("cont fxcaret").append(
+	const dlgAddRSSContent = $("<div>").addClass("cont").append(
 		$("<div>").addClass("row").append(
 			...[
 				["rssURL", theUILang.feedURL],
@@ -1364,7 +1364,7 @@ plugin.onLangLoaded = function()
 		true,
 	);
 
-	const dlgAddRSSGroupContent = $("<div>").addClass("cont fxcaret").append(
+	const dlgAddRSSGroupContent = $("<div>").addClass("cont").append(
 		$("<div>").addClass("row").append(
 			$("<div>").addClass("col-12 col-md-3 text-nowrap").append(
 				$("<label>").attr({for:"rssGroupLabel"}).text(theUILang.alias + ": "),
@@ -1388,7 +1388,7 @@ plugin.onLangLoaded = function()
 		true,
 	);
 
-	const dlgEditRSSContent = $("<div>").addClass("cont fxcaret").append(
+	const dlgEditRSSContent = $("<div>").addClass("cont").append(
 		$("<div>").addClass("row").append(
 			...[
 				["editrssURL", theUILang.feedURL],
@@ -1446,7 +1446,7 @@ plugin.onLangLoaded = function()
 		true,
 	);
 
-	const dlgEditFiltersContent = $("<div>").addClass("cont fxcaret d-flex flex-column flex-md-row align-items-stretch align-items-md-start").append(
+	const dlgEditFiltersContent = $("<div>").addClass("cont d-flex flex-column flex-md-row align-items-stretch align-items-md-start").append(
 		$("<div>").addClass("lfc flex-grow-0 flex-shrink-0 d-flex flex-column align-items-center").append(
 			$("<div>").attr({id:"filterList"}).addClass("lf p-2 m-2 align-self-stretch").append(
 				$("<ul>").attr({id:"fltlist"}).addClass("p-0 m-0"),

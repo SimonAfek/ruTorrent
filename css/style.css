@@ -97,8 +97,34 @@ span {
   --menu-highlight-background-color: #cfdeef;
 
   --settings-background-color: #fafafa;
-
+  --container-bg-color: #ffffff;
+  --container-border-color: #a0a0a0;
   --btn-bg-color: #F0F0F0;
+  --header-bg-color: #F0F0F0;
+  --header-border-color: #909090;
+  --dialog-bg-color: #FAFAFA;
+  --dialog-border-color: #909090;
+
+  --navbar-height: 36px;
+  --navbar-bg-color: #f0f0f0;
+  --navbar-bg-image: url(../images/t_bg.png);
+  --navbar-border-color: #d0d0d0;
+  --navbar-item-bg-color: #f0f0f0;
+  --navbar-item-border-color: #a0a0a0;
+  --loading-indicator-icon: url(../images/ajax-loader.gif);
+  --loading-indicator-side-length: 32px;
+}
+.dropdown-menu {
+  --bs-dropdown-border-color: var(--menu-border-color);
+  --bs-dropdown-bg: var(--menu-background-color);
+  --bs-dropdown-link-color: var(--menu-color);
+  --bs-dropdown-link-active-color: var(--menu-highlight-color);
+  --bs-dropdown-link-active-bg: var(--menu-highlight-background-color);
+  --bs-dropdown-link-hover-color: var(--menu-highlight-color);
+  --bs-dropdown-link-hover-bg: var(--menu-highlight-background-color);
+}
+a.dropdown-item {
+  width: auto;
 }
 category-list.rightalign-labelsize panel-label::part(size) {
   margin-left: auto;
@@ -122,55 +148,54 @@ div#modalbg {left: 0px; top: 0px; z-index: 500; display: none; opacity: 0.5; bac
 .konqueror div#modalbg { background: none; }
 .ie div#modalbg { filter:alpha(opacity=50); }
 
-div.aright {text-align: right}
-div.dlg-window {
+.dlg-window {
   position: absolute;
   left: 0px;
   top: 0px;
-  background-color: #FAFAFA;
+  background-color: var(--dialog-bg-color);
   color: #000000;
-  border: 2px solid #909090;
+  border: 2px solid var(--dialog-border-color);
   border-radius: 8px;
   outline: 0px solid transparent;
-  display: none;
-  max-width: 95vw;
-  max-height: 95vh;
-}
-div.dlg-window > div:first-child {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
+  flex-direction: column;
+  max-width: 95dvw;
+  max-height: 95dvh;
 }
-div.dlg-window div.row {
+.dlg-window .row {
   margin: 0.5rem 0;
   padding: 0;
 }
-div.dlg-window div.row > div {
+.dlg-window .row > div {
   display: flex;
   flex-direction: row;
   align-items: center;
   padding: 0 0.25rem;
   margin-bottom: 0.1rem;
 }
-div.fxcaret {overflow: auto}
-div.dlg-header {
-  line-height: 20px;
-  background: #F0F0F0 url(../images/blank.gif) no-repeat scroll 4px center;
-  border-bottom: 1px solid #909090;
+.dlg-header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  padding: 0.5rem;
+  background-color: var(--header-bg-color);
+  border-bottom: 1px solid var(--header-border-color);
   border-radius: 10px 10px 0 0;
+}
+.dlg-header > div:first-child {
+  line-height: 2rem;
   font-weight: bold;
-  padding: 0.25rem 0.25rem 0.25rem 3rem;
-  flex-grow: 1;
+  padding-left: 2rem;
+  background: no-repeat scroll 0.15rem center;
 }
 a.dlg-close:link, a.dlg-close:visited {
   display: block;
-  position: absolute;
-  right: 5px;
   height: 14px;
   width: 14px;
+  margin: auto 0.5rem;
   background: transparent url(../images/close.png) no-repeat scroll left center;
 }
 a.dlg-close:hover {background-position-x: -14px;}
@@ -198,27 +223,58 @@ ul.CMenu li:hover ul.left {left: -150px}
 span.htkey {text-align:right; position: absolute; right: 16px; z-index:100}
 #sel {width: 0px; height: 0px; left: 0px; top: 0px; border: 1px dotted #000000; display: none; z-index: 1000}
 
-div#t {
-  height: auto;
-  background: #F0F0F0 url(../images/t_bg.png) repeat-x center 0.25rem;
-  border-bottom: 1px solid #D0D0D0;
+#t {
+  height: var(--navbar-height);
+  background: var(--navbar-bg-image);
+  background-color: var(--navbar-bg-color);
+  background-position: center;
+  background-repeat: repeat-x;
+  border-bottom: 1px solid var(--navbar-border-color);
   margin-bottom: 5px;
   white-space: nowrap;
 }
-#top-menu {
-  background-color: #F0F0F0;
-  border-bottom: 1px solid #D0D0D0;
+#toggler-container {
+  min-height: 100%;
+  flex-grow: 1;
+  align-items: center;
+  justify-content: space-between;
+}
+#top-menu.show, #top-menu.collapsing {
+  background-color: var(--menu-background-color);
+  border-bottom: 1px solid var(--navbar-border-color);
   z-index: 30;
 }
-div#t button.navbar-toggler {
+#top-menu .btn-group {
+  flex-direction: column;
+  justify-content: center;
+}
+.dropdown-toggle span {
+  /* Push dropdown triangle to the right end */
+  margin-right: auto;
+}
+#t .dropdown-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.25rem 1rem;
+}
+.navbar-toggler {
   background-color: var(--btn-bg-color);
   width: 5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
 }
-div#t a {padding: 3px;}
-div#t div.navbar-nav a:hover {
+.navbar-toggler > div {
+  width: 16px;
+  height: 16px;
+}
+#t .nav-link:hover {
   filter: brightness(1.3);
 }
-div#t div.navbar-nav a:active {padding: 4px 2px 2px 4px;}
+#t .nav-link:active {padding: 0.35rem 0.15rem 0.15rem 0.35rem;}
 div#t div.TB_Separator {
   align-self: stretch;
   flex: 0 0 1px;
@@ -227,16 +283,16 @@ div#t div.TB_Separator {
   border: 0;
   background-color: #A0A0A0;
 }
-div#t .nav-link {
+#t .nav-link {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 0.5rem;
   font-weight: bold;
-  border: 1px solid #A0A0A0;
+  border: 1px solid var(--navbar-item-border-color);
   border-radius: 8px;
-  background-color: var(--btn-bg-color);
-  background-image: none;
+  background: var(--navbar-item-bg-color);
+  padding: 0.25rem;
   margin: 0.15rem;
 }
 div.navbar-nav div.nav-icon {
@@ -263,26 +319,36 @@ div#plugins {background: url(../images/plugin.png) 0px center}
 #go {background: url(../images/go.gif) 0px center; }
 
 #ind {
-  background: transparent url(../images/ajax-loader.gif) no-repeat 0px center;
-  width: 32px;
-  height: 32px;
-  cursor: default;
+  background: transparent var(--loading-indicator-icon) no-repeat center;
+  background-size: var(--loading-indicator-side-length);
+  width: var(--loading-indicator-side-length);
+  height: var(--loading-indicator-side-length);
 }
 
 #pview_save_view_button { align-self: center; width: 38px; height: 19px; padding: 0px; line-height: 2px; font-size: 19px;  }
 
-a {color: #686868;}
-#maincont {height: calc(100vh - 36px - 5px - 25px - 5px);}
+a {color: #686868; text-decoration: none;}
+#maincont {height: calc(100dvh - var(--navbar-height) - 5px - 25px - 5px);}
 .offcanvas-header .btn-close {background-color: var(--btn-bg-color);}
 #offcanvas-sidepanel {
-  background-color: #FFFFFF;
+  border: 1px solid var(--container-border-color);
+  background-color: var(--container-bg-color) !important;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
 }
-#side-panel {
-  border: 1px solid #A0A0A0;
+.offcanvas-body {
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1 !important;
+  overflow-y: auto !important;
+}
+#CatList {
+  flex: 1 1 auto;
 }
 #list-table {
-  border: 1px solid #A0A0A0;
-  background-color: #FFFFFF;
+  border: 1px solid var(--container-border-color);
+  background-color: var(--container-bg-color);
 }
 
 .stable-icon {background-image: url(../images/tstatus.png); background-repeat: no-repeat}
@@ -302,21 +368,23 @@ a {color: #686868;}
 
 div#HDivider, div#VDivider {flex: 0 0 5px;}
 
-div#stg {width: 95vw;}
-div#stg_c {
-  display: flex;
-  flex-direction: row;
+#stg {
+  width: 95vw;
+  height: 95vh;
   background-color: var(--settings-background-color);
 }
-div#stg-pages {
+#stg_c {
+  display: flex;
+  flex-direction: row;
+}
+#stg-pages {
   padding: 0 0.5rem;
-  height: 550px;
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
   overflow-x: auto;
 }
-div#stg-header { background-image: url(../images/settings.gif); }
+#stg-header {background-image: url(../images/settings.gif);}
 
 div#stg .lm {
   flex: 0 0 auto;
@@ -328,7 +396,7 @@ div#stg .lm {
 }
 .ie div#stg .lm {width: 125px; position: static;}
 .ie9 div#stg .lm {position: static}
-.ie div#stg {width: 605px;}
+.ie #stg {width: 605px;}
 
 .lm li {
   margin: 0 0.5rem;
@@ -397,20 +465,24 @@ div#stg .lm {
   font-weight: bold;
   text-wrap: nowrap;
 }
-input.disabled {background-color: #FAFAFA; color: #C0C0C0; border: 1px solid #C0C0C0}
+input.disabled, button.disabled {background-color: #FAFAFA; color: #C0C0C0; border: 1px solid #C0C0C0}
 td.disabled, label.disabled, span.disabled, div.disabled {color: #C0C0C0; cursor: default}
 .ie7 fieldset div {padding: 0px}
 div.indent {padding-left: 16px}
 #st_gl {display: block}
 #st_que, #st_sch, #st_dc {display: none}
-a {text-decoration: none}
 select.cols {border: 1px solid #808080; font-size: 11px;  padding: 2px; width: 120px}
-div#dragmask {width: 10px; height: 10px; left: 0px; top: 0px; position: absolute; z-index: 5000; display: none; border: 1px dotted #A0A0A0}
-div#tdetails {background-color: #F5F5F5;}
+div#tdetails {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  flex: 1 1 auto;
+  background-color: #F5F5F5;
+}
 div#tdetails a.h {margin: 0}
-div#tdcont {
-  background: #FFFFFF;
-  border: 1px solid #D0D0D0;
+#tdcont {
+  background: var(--container-bg-color);
+  border: 1px solid var(--container-border-color);
 }
 div.tab {
   height:100%;
@@ -422,6 +494,19 @@ div.tab {
 div#lcont {line-height: 1rem; background: #FFFFFF}
 div#lcont div.mono {font-family: monospace; line-height: 1rem; background: #F5F5F5; white-space: pre}
 div#lcont .std {padding: 2px}
+#clear_log {
+  position: fixed;
+  bottom: 4rem;
+  right: 2rem;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 1.5rem;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background-image: none;
+}
 
 div#gcont span.det-hdr {font-weight: bold;}
 div#gcont div.row.Header {font-size: 14px; font-weight: bold; background: #FCFCFC; padding: 0.5rem;}
@@ -439,7 +524,11 @@ div.table_tab {
   -moz-user-input: enabled;
 }
 
-div.cont {padding: 6px;}
+.cont {
+  padding: 6px;
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
 
 .tabbar li.nav-item a.nav-link {
   padding: 0.3rem;
@@ -459,24 +548,22 @@ div.cont {padding: 6px;}
   color: unset;
 }
 
-div#dlgLabel {max-width: 350px;}
-div#dlgLabel div.dlg-header {background-image: url(../images/label.gif)}
-div#padd {width: 250px;}
-div#padd div.dlg-header {background-image: url(../images/props.gif)}
-div#dlgAbout {max-width: 300px;}
-div#dlgAbout div.dlg-header {background-image: url(../images/about.gif)}
-div#dlgHelp {max-width: 300px;}
-div#dlgHelp div.dlg-header {background-image: url(../images/about.gif)}
+#dlgLabel {max-width: 350px;}
+#dlgLabel-header {background-image: url(../images/label.gif)}
+#padd {width: 250px;}
+#padd-header {background-image: url(../images/props.gif)}
+#dlgAbout {max-width: 300px;}
+#dlgAbout-header {background-image: url(../images/about.gif)}
+#dlgHelp {max-width: 300px;}
+#dlgHelp-header {background-image: url(../images/about.gif)}
 
-div#dlgProps {max-width: 450px;}
-div#dlgProps div.dlg-header {background-image: url(../images/props.gif)}
-div#dlgProps textarea#prop-trackers {width: 100%; height: 70px; background: #FFFFFF; border: 1px solid #D0D0D0}
-input#prop-seed_ratio {width: 40px}
+#dlgProps {max-width: 450px;}
+#dlgProps-header {background-image: url(../images/props.gif)}
+#prop-trackers {width: 100%; height: 70px; background: #FFFFFF; border: 1px solid #D0D0D0}
+#prop-seed_ratio {width: 40px}
 
-div#yesnoDlg {width: 280px; height: auto; min-height: 100px}
-div#yesnoDlg div.dlg-header {background-image: url(../images/error.gif)}
-div#yesnoDlg div.content {width: 260px; margin: 5px; padding: 5px; line-height: 16px}
-div#yesnoDlg div.content input {margin-top: 5px}
+#yesnoDlg {width: 280px; height: auto; min-height: 100px}
+#yesnoDlg-header {background-image: url(../images/error.gif)}
 
 span#loadimg {padding: 20px; background: transparent url(../images/ajax-loader.gif) no-repeat center center; }
 .webkit div#msg {position: fixed;}
@@ -486,7 +573,7 @@ span#loadimg {padding: 20px; background: transparent url(../images/ajax-loader.g
 .Icon_Dir {background: transparent url(../images/dir.gif) no-repeat left center}
 .Icon_Share {background: transparent url(../images/share.gif) no-repeat left center}
 
-div#tadd-header {background-image: url(../images/world.gif)}
+#tadd-header {background-image: url(../images/world.gif)}
 
 .konqueror div#tadd label { width: 80px; }
 .konqueror div#tadd { height: 290px; }
@@ -494,6 +581,7 @@ div#tadd-header {background-image: url(../images/world.gif)}
 
 #StatusBar {
   position: absolute;
+  z-index: 2;
   left: 0;
   bottom: 0;
   border-top: 1px solid #A0A0A0;
@@ -543,17 +631,8 @@ div#tadd-header {background-image: url(../images/world.gif)}
 .buttons-group-row {margin: 0.25rem; gap: 0.25rem; display: flex; flex-direction: row;}
 
 .ie fieldset {padding: 5px}
-div.space {flex-grow: 1;}
 #servertime { text-align: center }
 #viewrows { text-align: center; }
-
-@media only screen and (min-width: 1280px) {
-  .desktop { display: inline-block; }
-}
-
-@media only screen and (max-width: 1279px) {
-  .desktop { display: none; }
-}
 
 /* Custom break point settings for responsiveness */
 
@@ -561,7 +640,7 @@ div.space {flex-grow: 1;}
 /* No media query for `xs` since this is the default in Bootstrap */
 /* Custom rules for medium devices */
 div#tadd {max-width: 95vw;}
-div.dlg-window .buttons-list {
+.dlg-window .buttons-list {
   margin: 0.5rem;
   gap: 0.25rem;
   display: flex;
@@ -578,36 +657,26 @@ div.dlg-window .buttons-list {
 /* Medium devices (tablets, 768px and up) */
 @media (min-width: 768px) { 
   /* Custom rules for medium devices */
-  div#t {
-    height: 36px;
-  }
-  #top-menu {
-    background-color: transparent;
-    border-bottom: none;
-    z-index: auto;
-  }
-  div#t div.navbar-nav a:hover {
-    background: transparent url(../images/tb_bg.gif) no-repeat scroll center center;
+  #t .nav-link:hover {
+    background: transparent url(../images/tb_bg.gif) no-repeat scroll left center;
     filter: none;
   }
-  div#t .nav-link {
-    border: none;
-    border-radius: 0;
-    background-color: transparent;
+  #t .nav-link {
+    border: transparent;
+    background: transparent;
   }
   div#HDivider {cursor: e-resize;}
   div#VDivider {cursor: n-resize;}
   div#HDivider:hover, div#VDivider:hover {background: #A0A0A0;}
   div#tadd {min-width: 600px;}
-  div.dlg-window .buttons-list {
+  .dlg-window .buttons-list {
     margin: 1rem 0.5rem;
-    gap: 0.25rem;
-    display: flex;
-    flex-direction: row;
     justify-content: end;
-    flex-wrap: nowrap;
   }
-  div#stg {width: 660px;}
+  #stg {
+    width: 660px;
+    height: 600px;
+  }
 }
 
 /* Large devices (desktops, 992px and up) */

@@ -39,6 +39,20 @@ theWebUI.rDirBrowser = class {
 		if (!!stgId) {
 			theOptionsSwitcher.addHandler(stgId, "afterHide", () => self.hide());
 		}
+		// move dir list frame along with the containing dialog window
+		$(`#${dlgId}`).data("dnd").options.onRun = () => {
+			$(`#${dlgId}`).find(".browseEdit").each((_, ele) => {
+				// move open ones only because frames will automatically reposition
+				// when toggled open
+				if ($(`#${ele.id}_frame`).css("display") !== "none") {
+					const frameOffs = ele.getBoundingClientRect();
+					$(`#${ele.id}_frame`).css({
+						top: frameOffs.bottom,
+						left: frameOffs.left,
+					});
+				}
+			});
+		};
 
 		this.withFiles = withFiles;
 		this.height = height;
@@ -120,16 +134,12 @@ theWebUI.rDirBrowser = class {
 	}
 
 	requestDir() {
-		const path = this.edit.val();
-		if (path.length > 0 && !path.endsWith("/")) {
-			this.edit.val(path.slice(0, path.lastIndexOf("/") + 1));
-		}
 		$.ajax(
 			`plugins/_getdir/listdir.php?dir=${encodeURIComponent(this.edit.val())}&time=${(new Date()).getTime()}${this.withFiles ? "&withfiles=1" : ""}`,
 			{
 				success: (res) => {
 					this.frame.find(".filter-dir").val("").trigger("focus");
-					this.edit.val(res.path).data({cwd:res.path});
+					this.edit.val(res.path).data({cwd:res.path, previousValue:this.edit.val()}).change();
 					this.frame.find(".rmenuobj").remove();
 					this.frame.append(
 						$("<div>").addClass("rmenuobj").append(
