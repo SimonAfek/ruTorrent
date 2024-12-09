@@ -1,5 +1,8 @@
-html, body { background-color: #1e2124; color: #BDDBDB }
+html, body { background-color: #1e2124; }
 :root {
+  --text-color: #bddbdb;
+  --text-header-color: #00ff00;
+
   --menu-color: #00FF00;
   --menu-background-color: #1e2124;
   --menu-border-color: #a0a0a0;
@@ -13,12 +16,15 @@ html, body { background-color: #1e2124; color: #BDDBDB }
   /* --menu-item-active-icon: undefined - inherit from standard theme; */
   --menu-item-exp-icon: url(data:image/gif;base64,R0lGODlhCAAHAMQAAAAAAP///wD4AADpAADKAAC5AAC1AACwAAChAACQAACIAAT/BCX/JTH/MU//T1X/VW3/bW//b////wAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH5BAEAABIALAAAAAAIAAcAAAUYYCSNpAQ55fg0S8oIxFEORpIWSiohuhQCADs=);
 
-  --settings-background-color: #272E36;
   --container-bg-color: #272E36;
   --container-border-color: #a0a0a0;
   --btn-bg-color: #D7D7D7;
   --header-bg-color: #1E2124;
   --header-border-color: #909090;
+  --footer-height: 25px;
+  --footer-bg-color: #1e2124;
+  --footer-bg-image: none;
+  --footer-border-color: #a0a0a0;
   --dialog-bg-color: #1E2124;
   --dialog-border-color: #909090;
 
@@ -76,7 +82,6 @@ panel-label[selected] {
 div#preload {background-image: url(./images/toolbar.png); background-image: url(./images/tstatus.png); background-image: url(./images/t_bg.png); background-image: url(./images/r_bg.gif); background-image: url(./images/i_bg.gif); background-image: url(./images/asc.gif); background-image: url(./images/desc.gif); background-image: url(./images/file.gif); background-image: url(./images/dir.gif); background-image: url(./images/pnl_open.gif); background-image: url(./images/pnl_close.gif)}
 div#cover {background: #272E36}
 div#msg {background: #272E36; border-top: 1px solid #D0D0D0; border-bottom: 1px solid #D0D0D0; color: #00ff00;}
-.dlg-window { color: #BDDBDB }
 
 div#modalbg {background-color: #181818;}
 
@@ -107,7 +112,6 @@ div#side-panel ul li.sel {background-color: #BDDBDB; border-color: #BDDBDB; colo
 
 .stable-icon {background-image: url(./images/tstatus.png); }
 
-#stg { background-color: #272E36; color: #BDDBDB; border: 2px solid #909090; }
 div#stg .lm { background-color: #272E36; border: 1px solid #D0D0D0; }
 
 .lm li div > div {
@@ -122,14 +126,8 @@ div#stg .lm { background-color: #272E36; border: 1px solid #D0D0D0; }
 .lm li div.toggle { background: transparent url(./images/exp.gif) no-repeat scroll center center; }
 .lm li a {color: #BDDBDB; }
 .lm li a.focus {background-color: #BDDBDB; color: #272E36;}
-.stg_con {background-color: #272E36}
 
 input.disabled, button.disabled {background-color: #272E36; }
-legend {color: #00FF00; font-weight: bold}
-
-#st_gl {background: #272E36; color: #BDDBDB;}
-#st_dl, #st_con, #st_bt, #st_que, #st_sch, #st_ao, #st_dc { color: #BDDBDB;}
-#st_autotools, #st_retrackers, #st_starter, #st_ratio, #st_throttle, #st_unpack, #st_scheduler {color: #BDDBDB;} 
 
 a { color: #00ff00; font-weight: bold;}
 
@@ -155,8 +153,6 @@ div#gcont div.row.Header {background: #323A46;}
   font-weight: bold;
 }
 
-.dlg-header {color: #00FF00;}
-
 /* Dialog window icons */
 #stg-header {background-image: url(./images/settings.gif);}
 #tadd-header {background-image: url(./images/world.gif); }
@@ -172,7 +168,7 @@ span#loadimg { background: transparent url(./images/ajax-loader.gif) no-repeat c
 .Icon_Dir {background: transparent url(./images/dir.gif) no-repeat left center}
 .Icon_Share {background: transparent url(./images/dir.gif) no-repeat left center}
 
-#StatusBar { background-color: #1e2124; color: #ffffff; font-weight: bold }
+#StatusBar { color: #ffffff; font-weight: bold }
 #st_up { background:url(./images/status_up.gif) 6px no-repeat; color: #BDDBDB; }
 #st_down { background:url(./images/status_down.gif) 6px no-repeat; color: #BDDBDB;}
 
