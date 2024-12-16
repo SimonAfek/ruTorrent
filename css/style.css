@@ -163,7 +163,6 @@ div#msg {top: 50%; margin-top: -50px; line-height: 100px; font-weight: bold; bac
 .pre-theme-load.dark-theme #loadimg { filter: invert(1); }
 div#modalbg {left: 0px; top: 0px; z-index: 500; display: none; opacity: 0.5; background-color: #CCCCCC;}
 .konqueror div#modalbg { background: none; }
-.ie div#modalbg { filter:alpha(opacity=50); }
 
 .dlg-window {
   position: absolute;
@@ -415,6 +414,7 @@ a {color: #686868; text-decoration: none;}
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  flex: 0 0 auto;
 }
 .offcanvas-body {
   display: flex;
@@ -426,24 +426,11 @@ a {color: #686868; text-decoration: none;}
   flex: 1 1 auto;
 }
 #list-table {
+  flex: 0 0 auto;
+  overflow: hidden;
   border: 1px solid var(--container-border-color);
   background-color: var(--container-bg-color);
 }
-
-.stable-icon {background-image: url(../images/tstatus.png); background-repeat: no-repeat}
-.Status_Down {background-position: 0px 0px}
-.Status_Up {background-position: 0px -16px}
-.Status_Incompleted {background-position: 0px -32px}
-.Status_Paused {background-position: 0px -48px}
-.Status_Error_Down {background-position: 0px -64px}
-.Status_Error_Up {background-position: 0px -80px}
-.Status_Error {background-position: 0px -96px}
-.Status_Completed {background-position: 0px -112px}
-.Status_Queued_Down {background-position: 0px -128px}
-.Status_Queued_Up {background-position: 0px -144px}
-.Status_Up_Down {background-position: 0px -160px}
-.Status_Checking {background-position: 0px -176px}
-.Status_RSS {background-position: 0px -208px}
 
 div#HDivider, div#VDivider {flex: 0 0 5px;}
 
@@ -472,9 +459,6 @@ div#stg .lm {
   border-radius: 0 0 0 6px;
   overflow: hidden auto;
 }
-.ie div#stg .lm {width: 125px; position: static;}
-.ie9 div#stg .lm {position: static}
-.ie #stg {width: 605px;}
 
 .lm li {
   margin: 0 0.5rem;
@@ -516,7 +500,6 @@ div#stg .lm {
   flex-grow: 1;
 }
 .lm li a.focus {background-color: #E0E0E0}
-.ie .lm li a {margin: 0 0 0 -5px; padding: 0}
 .stg_con {
   display: none;
   margin-bottom: auto;
@@ -527,7 +510,6 @@ div#stg .lm {
   top: 0;
   background-color: var(--dialog-bg-color);
 }
-.ie9 .stg_con {position: static}
 .stg_con table {width: 100%}
 .stg_con td {font-weight: normal; height: 19px}
 .stg_con td.alr {text-align: right}
@@ -544,7 +526,6 @@ div#stg .lm {
 }
 input.disabled, button.disabled {background-color: #FAFAFA; color: #C0C0C0; border: 1px solid #C0C0C0}
 td.disabled, label.disabled, span.disabled, div.disabled {color: #C0C0C0; cursor: default}
-.ie7 fieldset div {padding: 0px}
 div.indent {padding-left: 16px}
 #st_gl {display: block}
 #st_que, #st_sch, #st_dc {display: none}
@@ -554,6 +535,7 @@ div#tdetails {
   flex-direction: column;
   align-items: stretch;
   flex: 1 1 auto;
+  overflow: hidden;
   background-color: #F5F5F5;
 }
 div#tdetails a.h {margin: 0}
@@ -590,7 +572,16 @@ div#gcont div.row.Header {font-size: 14px; font-weight: bold; background: #FCFCF
 div#gcont div.row:not(.Header) {padding: 0 0.3rem; word-break: break-all;}
 div#gcont div.row > div {padding-top: 0.25rem; padding-bottom: 0.25rem;}
 
-div.graph_tab {background-color: #FFFFFF; overflow: hidden; display: block; -moz-user-focus: normal; -moz-user-input: enabled; line-height: 11px; color: #545454;}
+div.graph_tab {
+  height: 100%;
+  background-color: #FFFFFF;
+  overflow: hidden;
+  display: block;
+  -moz-user-focus: normal;
+  -moz-user-input: enabled;
+  line-height: 11px;
+  color: #545454;
+}
 .graph_tab_grid,.graph_tab_legend {display: none;}
 .graph_tab_grid { background-color: transparent; border: 2px solid #545454; }
 .graph_tab_legend { background-color: #F0F0F0; border: 0px none transparent; }
@@ -645,10 +636,6 @@ div.table_tab {
 span#loadimg {padding: 20px; background: transparent url(../images/ajax-loader.gif) no-repeat center center; }
 .webkit div#msg {position: fixed;}
 .konqueror div#msg {position: fixed;}
-
-.Icon_File {background: transparent url(../images/file.gif) no-repeat left center}
-.Icon_Dir {background: transparent url(../images/dir.gif) no-repeat left center}
-.Icon_Share {background: transparent url(../images/share.gif) no-repeat left center}
 
 #tadd-header {background-image: url(../images/world.gif)}
 
