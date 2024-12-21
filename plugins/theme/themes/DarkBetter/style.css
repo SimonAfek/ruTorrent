@@ -37,9 +37,12 @@ html, body {background-color: #181818; color: #999999; }
   --loading-indicator-icon: url(../plugins/theme/themes/DarkBetter/images/ajax-loader.gif);
   --loading-indicator-side-length: 28px;
 }
+#StatusBar {
+  /* --pane-up-icon: undefined - inherit from standard theme; */
+  /* --pane-down-icon: undefined - inherit from standard theme; */
+}
 category-panel {
-  --open-background-image: url(../plugins/theme/themes/DarkBetter/images/pnl_open.svg);
-  --close-background-image: url(../plugins/theme/themes/DarkBetter/images/pnl_close.svg);
+  --open-background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3e%3cpath stroke='#23fff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M24 34l18-20H6z'/%3e%3c/svg%3e");
   --heading-background-color: #111111;
   --heading-border-color: #333333;
 }
@@ -174,8 +177,6 @@ div#preload {
     background-image: url(./images/yellow.svg);
     background-image: url(./images/red.svg);
     background-image: url(./images/green.svg);
-    background-image: url(./images/pnl_open.svg);
-    background-image: url(./images/pnl_close.svg);
     background-image: url(./images/file.svg);
     background-image: url(./images/dir.svg);
     background-image: url(./images/t_down.svg);
@@ -225,10 +226,6 @@ div#t div#setting {background: transparent url(./images/tb_setting.svg) no-repea
 div#t div#help {background: transparent url(./images/quest.svg) no-repeat center; background-size: 28px}
 div#t div#go {background: transparent url(./images/go.svg) no-repeat center; background-size: 28px}
 div#t div#plugins {background: transparent url(./images/plugin.svg) no-repeat center; background-size: 28px}
-
-#port-pane .pstatus0 {background: url(./images/yellow.svg) no-repeat !important;}
-#port-pane .pstatus1 {background: url(./images/red.svg) no-repeat !important;}
-#port-pane .pstatus2 {background: url(./images/green.svg) no-repeat !important;}
 
 a.dlg-close:hover, a.dlg-close:link, a.dlg-close:visited {
     background: transparent url(./images/close.svg) center; background-size: 22px !important;
