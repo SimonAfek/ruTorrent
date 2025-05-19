@@ -148,6 +148,7 @@ var theWebUI = {
 		"webui.timeformat":		0,
 		"webui.dateformat":		0,
 		"webui.speedintitle":		0,
+		"webui.normalize_torrent_name":	0,
 		"webui.speedgraph.max_seconds": 600,
 		"webui.log_autoswitch":		1,
 		"webui.labelsize_rightalign":		0,
@@ -456,6 +457,10 @@ var theWebUI = {
 //		this.setStatusUpdate();
 		$.each(this.tables, function(ndx,table)
 		{
+			// is torrent name normalizing enabled?
+			if (ndx === 'trt' && theWebUI.settings["webui.normalize_torrent_name"]) {
+				table.columns.find(c => c.id === 'name').type = TYPE_STRING_LABEL;
+			}
 			table.obj.create($$(table.container), table.columns, ndx);
 			// legacy support of numeric sortId, sortId2
 			for(const name of ['sortId', 'sortId2']) {
@@ -744,6 +749,7 @@ var theWebUI = {
 								break;
 							}
 							case "webui.register_magnet":
+							case "webui.normalize_torrent_name":
 							{
 								reply = theWebUI.reload;
 								break;
@@ -868,7 +874,7 @@ var theWebUI = {
 				cookie[i] = v;
 		}
 		// We must encode the URL here to avoid injection with the "&" symbol from search results
-		theWebUI.request("?action=setuisettings&v=" + encodeURIComponent(JSON.stringify(cookie),reply));
+		theWebUI.request("?action=setuisettings&v=" + encodeURIComponent(JSON.stringify(cookie)), reply);
 	},
 
 //
@@ -2546,7 +2552,6 @@ $(document).ready(function()
 	Promise.all([
 		import('./backgroundtask.js'),
 		import('./category-list.js'),
-		import('./log_history.js'),
 	]).then(([bgModule, catModule]) => {
 		theWebUI.taskAddTorrents = new bgModule.BackgroundTask();
 		theWebUI.categoryList = createCategoryList(catModule);

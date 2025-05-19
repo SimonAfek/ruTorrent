@@ -462,6 +462,68 @@ var theConverter =
 	}
 };
 
+var theNormalizer = {
+	encloses: ['[]', '{}', '()'],
+	getLabel(s) {
+		let res;
+		if (s !== null) {
+			for (const enclose of this.encloses) {
+				const o = enclose.substr(0, 1);
+				const c = enclose.substr(1, 1);
+				const re = new RegExp(`^\\${o}(.*?)\\${c}`, 'i');
+				const matches = re.exec(s);
+				if (matches) {
+					res = [matches[1], s.substr(matches[0].length)];
+					break;
+				}
+			}
+		}
+		return res;
+	},
+	clean(s, sortable = true) {
+		if (s !== null && s.length) {
+			if (sortable) {
+				// replace dot and underscore with whitespace
+				// replace multiple whitespace with single whitespace
+				s = s.replace(/(\.|_|\s{2,})/g, ' ');
+			} else {
+				s = s
+					.replace(/^(\.|_)/g, ' ')
+					.replace(/(\.|_)$/g, ' ');
+			}
+			s = s.trim();
+		}
+		return s;
+	},
+	normalize(s, sortable = true) {
+		if (s !== null) {
+			// get label
+			const label = this.getLabel(s);
+			if (label) {
+				s = label[1];
+			}
+			s = this.clean(s, sortable);
+			if (sortable) {
+				// ignore 'the' in the beginning text
+				if (s.length && s.toLowerCase().substr(0, 3) === 'the') {
+					s = s
+						.substr(3)
+						.trim();
+				}
+			}
+			// append label if necessary
+			if (s.length && label) {
+				s += ` \`${label[0]}\``;
+			}
+			// treat label as string
+			if (s.length === 0 && label) {
+				s = label[0];
+			}
+		}
+		return s;
+	}
+}
+
 var theFormatter =
 {
 	torrents: function(table,arr)
@@ -473,6 +535,11 @@ var theFormatter =
 			else
    			switch(iv(i))
 			{
+				case 0:
+					if (theWebUI.settings["webui.normalize_torrent_name"]) {
+						arr[i] = theNormalizer.normalize(arr[i], false);
+					}
+					break;
 				case 3:
 					arr[i] = (arr[i] / 10) + "%";
 					break;
@@ -885,33 +952,7 @@ function noty(msg, status, noTime) {
 	}
 	const force = iv(theWebUI.settings["webui.log_autoswitch"]) && !$.noty;
 	log(msg, noTime, "std", force);
-	sendLogToServer(msg, status);
 }
-
-function sendLogToServer(msg, status) {
-        fetch('php/log_history.php', {
-                method: 'POST',
-                headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: `message=${encodeURIComponent(msg)}&status=${encodeURIComponent(status)}`
-        })
-        .then(response => {
-                if (response.status === 204) {
-                        return;
-                }
-                return response.json();
-        })
-        .then(data => {
-                if (data) {
-                        console.log("Log saved to server:", data);
-                }
-        })
-        .catch(error => {
-                console.log("Saving Log failed:", error);
-        });
-}
-
 
 function fallbackCopyToClipboard(text)
 {
