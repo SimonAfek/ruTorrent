@@ -1652,6 +1652,16 @@ var theWebUI = {
 				table.setRowById(torrent, hash, sInfo[0], {})
 			})
 			.enqueueFunc(() => {
+				if (theWebUI.dID && !(theWebUI.dID in dataTorrents)) {
+					const staleDetailsHash = theWebUI.dID;
+					delete theWebUI.files[staleDetailsHash];
+					delete theWebUI.dirs[staleDetailsHash];
+					delete theWebUI.peers[staleDetailsHash];
+					delete theWebUI.trackers[staleDetailsHash];
+					theWebUI.dID = "";
+					theWebUI.clearDetails();
+				}
+
 				// update details page
 				const detailsTorrent = dataTorrents[theWebUI.dID];
 				const oldDetailsTorrent = this.torrents[theWebUI.dID];
@@ -1672,6 +1682,7 @@ var theWebUI = {
 						delete theWebUI.files[hash];
 						delete theWebUI.dirs[hash];
 						delete theWebUI.peers[hash];
+						delete theWebUI.trackers[hash];
 						table.removeRow(hash);
 					}
 				}
@@ -2094,7 +2105,7 @@ var theWebUI = {
 			$("#et").text(theConverter.time(Math.floor((new Date().getTime()-theWebUI.deltaTime)/1000-iv(d.state_changed)),true));
 			$("#wa").text(theConverter.bytes(d.skip_total, 'details'));
 	        	$("#bf").text(d.base_path);
-	        	$("#co").text(theConverter.date(iv(d.created)+theWebUI.deltaTime/1000));
+	        	$("#co").text(theConverter.date(iv(d.created)));
 			const trackers = this.trackers[this.dID] ?? [];
 			$("#tu").text(trackers.length ? (trackers[0].name  + (trackers.length > 1 ? ` ${theUILang.of} ${d.tracker_size}` : '')) : `${d.tracker_size}`);
 	        	$("#hs").text(this.dID.substring(0,40));

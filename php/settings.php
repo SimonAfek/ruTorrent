@@ -208,7 +208,9 @@ class rTorrentSettings
 			{
 				require_once( 'methods-0.9.4.php' );
 			}
-			if($this->iVersion>=0x1002)
+			// iVersion packs one version component per byte, so 0.10.2 is
+			// 0x0a02 (0x1002 would be 0.16.2). Newer daemons inherit these.
+			if($this->iVersion>=0x0a02)
 			{
 				require_once( 'methods-0.10.2.php' );
 			}
@@ -380,6 +382,24 @@ class rTorrentSettings
 			$startAt = 0;
 		$interval = $interval*60;
 		return( new rXMLRPCCommand("schedule", array( $name.User::getUser(), $startAt."", $interval."", $cmd )) );
+	}
+	static public function getAlignedStart($name,$interval,$now = null)	// $interval in seconds
+	{
+		global $schedule_rand;
+		if(!isset($schedule_rand))
+			$schedule_rand = 10;
+		if($interval<1)
+			return(0);
+		if(is_null($now))
+			$now = time();
+		$offset = ($schedule_rand>0) ? (abs(crc32($name.User::getUser())) % ($schedule_rand+1)) : 0;
+		$startAt = (($offset-$now) % $interval + $interval) % $interval;
+		return($startAt<1 ? $interval : $startAt);
+	}
+	public function getAlignedScheduleCommand($name,$interval,$cmd)	// $interval in seconds
+	{
+		return( new rXMLRPCCommand("schedule", array( $name.User::getUser(),
+			self::getAlignedStart($name,$interval)."", $interval."", $cmd )) );
 	}
 	public function getRemoveScheduleCommand($name)
 	{
