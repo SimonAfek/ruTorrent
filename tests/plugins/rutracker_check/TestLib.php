@@ -72,6 +72,37 @@ function strictAssertSame($expected, $actual, $message)
     }
 }
 
+// Every log line this plugin writes must be English. The UI text moved into
+// plugins/rutracker_check/lang/*.js (the plugin writes a chk-msg token and the
+// browser renders it), so what is left in PHP is log lines only, and the log is
+// read by whoever maintains the plugin rather than by the torrent's owner.
+// Plain printable ASCII is the check: it rejects Cyrillic prose without
+// pretending to judge grammar.
+function strictAssertEnglish($text, $message)
+{
+    strictAssertTrue(is_string($text) && $text !== '', $message . '; not a non-empty string');
+    strictAssertTrue(preg_match('/^[\x09\x20-\x7E]+$/', $text) === 1,
+        $message . '; log line is not plain-ASCII English: ' . $text);
+}
+
+// The recorded log lines containing $needle. Log assertions name the line they
+// mean rather than its index, so adding a diagnostic elsewhere in the same
+// flow cannot silently retarget an existing assertion.
+function strictLogsMatching($logs, $needle)
+{
+    return array_values(array_filter((array) $logs, function ($line) use ($needle) {
+        return strpos((string) $line, $needle) !== false;
+    }));
+}
+
+function strictAssertOneLogMatching($logs, $needle, $message)
+{
+    $matched = strictLogsMatching($logs, $needle);
+    strictAssertSame(1, count($matched), $message . '; expected exactly one line containing "'
+        . $needle . '", saw ' . var_export($logs, true));
+    return $matched[0];
+}
+
 function strictRemoveTree($path)
 {
     if (is_link($path) || is_file($path)) {
@@ -286,6 +317,7 @@ if (defined('TESTLIB_HANDLER_STUBS')) {
 
         public $status = -1;
         public $results = '';
+        public $headers = array();
         public $read_timeout = 0;
         public $_fp_timeout = 0;
         public $agent = '';
@@ -296,12 +328,12 @@ if (defined('TESTLIB_HANDLER_STUBS')) {
             self::$requests = array();
         }
 
-        public static function queue($url, $status, $results)
+        public static function queue($url, $status, $results, $headers = array())
         {
             if (!isset(self::$responses[$url])) {
                 self::$responses[$url] = array();
             }
-            self::$responses[$url][] = array($status, $results);
+            self::$responses[$url][] = array($status, $results, $headers);
         }
 
         private function respond($method, $url)
@@ -310,7 +342,7 @@ if (defined('TESTLIB_HANDLER_STUBS')) {
             if (!isset(self::$responses[$url]) || count(self::$responses[$url]) === 0) {
                 throw new RuntimeException("Unexpected {$method} request: {$url}");
             }
-            list($this->status, $this->results) = array_shift(self::$responses[$url]);
+            list($this->status, $this->results, $this->headers) = array_shift(self::$responses[$url]);
             return true;
         }
 
@@ -345,6 +377,9 @@ if (defined('TESTLIB_HANDLER_STUBS')) {
             . "Chrome/120.0.0.0 Safari/537.36";
 
         public static $created = array();
+        // $created only records payloads that parsed, so a handler that must
+        // not reach createTorrent() at all is asserted against this counter.
+        public static $createCalls = 0;
         public static $logs = array();
         public static $registrations = array();
         public static $createResult = null;
@@ -352,6 +387,7 @@ if (defined('TESTLIB_HANDLER_STUBS')) {
         public static function reset()
         {
             self::$created = array();
+            self::$createCalls = 0;
             self::$logs = array();
             self::$registrations = array();
             self::$createResult = null;
@@ -373,6 +409,7 @@ if (defined('TESTLIB_HANDLER_STUBS')) {
 
         public static function createTorrent($payload, $oldHash)
         {
+            self::$createCalls++;
             $parsed = @new Torrent($payload);
             if ($parsed->errors() || strlen((string) $parsed->hash_info()) !== 40) {
                 return self::STE_ERROR;
