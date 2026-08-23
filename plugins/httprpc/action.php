@@ -55,6 +55,32 @@ if(isset($HTTP_RAW_POST_DATA))
 	}
 }
 
+/**
+ * Resolve as much of a path as exists. A download directory usually does not
+ * exist yet, so realpath() on it answers nothing and only a lexical check is
+ * left -- which one symlink inside the customer's own tree defeats, and the
+ * customer can create symlinks over FTP. Walk up to the deepest ancestor that
+ * does exist, resolve that, and re-attach the rest.
+ */
+function httprpcResolvePath($path)
+{
+	$real = @realpath($path);
+	if($real !== false)
+		return $real;
+
+	$parts = explode('/', trim($path, '/'));
+	$tail = array();
+	while(count($parts) > 0)
+	{
+		array_unshift($tail, array_pop($parts));
+		$base = '/'.implode('/', $parts);
+		$real = @realpath(($base === '') ? '/' : $base);
+		if($real !== false)
+			return rtrim($real, '/').'/'.implode('/', $tail);
+	}
+	return '';
+}
+
 function makeMulticall($cmds,$hash,$add,$prefix)
 {
 	$cmd = new rXMLRPCCommand( $prefix.".multicall", array( $hash, "" ) );
@@ -210,8 +236,14 @@ switch($mode)
 					$torrents[$current_index][] = $value;
 			}
 
-			$theCache->calcDifference( $cid, $torrents, $dTorrents );
+			// Without a previous state there is nothing to diff against, so the
+			// answer is the whole list and carries no deletions -- say so, or a
+			// client that has been running since before the state was lost keeps
+			// torrents rtorrent no longer has, with only a reload to clear them.
+			$hasPrevious = $theCache->calcDifference( $cid, $torrents, $dTorrents );
 			$result = array( "t"=>$torrents, "cid"=>$cid );
+			if(!$hasPrevious)
+				$result["full"] = 1;
 			if(count($dTorrents))
 				$result["d"] = $dTorrents;
 		}
@@ -657,7 +689,49 @@ switch($mode)
 			$proxyMode = isset($XMLRPCProxy) ? $XMLRPCProxy : 'sanitize';
 			$proxyLog = isset($XMLRPCProxyLog) ? $XMLRPCProxyLog : true;
 			$proxySafeParams = isset($XMLRPCProxySafeParams) ? $XMLRPCProxySafeParams : array();
-			$result = XMLRPCProxy::process($HTTP_RAW_POST_DATA, $proxyMode, $proxyLog, $proxySafeParams);
+			$proxyLocalPaths = isset($XMLRPCProxyAllowLocalPaths) ? $XMLRPCProxyAllowLocalPaths : false;
+			// d.directory.set names the directory rtorrent writes a download
+			// into, and the caller supplies the torrent, so it names the file
+			// too. Confine it to the same boundary the panel already holds
+			// itself to: correctDirectory() is applied to the directory in
+			// sendTorrent(), in addtorrent.php, and to sdirectory in the
+			// setsettings branch above. Raw XMLRPC reached rtorrent without it.
+			//
+			// $topDirectory is a global by now -- php/util.php requires
+			// conf/config.php, and php/xmlrpc.php requires util.php. Where it is
+			// "/" this permits everything, which is what the panel permits with
+			// that setting too; this makes the two doors agree rather than
+			// making one stricter.
+			$proxyOptions = array('directory' => array(
+				'root' => (isset($topDirectory) && ($topDirectory !== ''))
+					? $topDirectory : '/',
+				'resolve' => 'httprpcResolvePath',
+			));
+			// decide() here, not process(): this endpoint owns its own
+			// connection to rtorrent, and process()'s null return cannot tell a
+			// call this filter refused from one rtorrent could not answer. That
+			// is what rpc2.php does with the same policy.
+			$decision = XMLRPCProxy::decide($HTTP_RAW_POST_DATA, $proxyMode, $proxySafeParams, $proxyLocalPaths, $proxyOptions);
+			if($proxyLog)
+				foreach($decision['log'] as $line)
+					FileUtil::toLog("xmlrpc-proxy: ".$line);
+			if($decision['action'] !== 'send')
+			{
+				// This filter refused the call; rtorrent never saw it. Name the
+				// command and say this server refused it, the 403/-501 rpc2.php
+				// answers for the same refusals -- not "is rtorrent running",
+				// which sends the client to restart a client that is up.
+				header("HTTP/1.0 403 Forbidden");
+				CachedEcho::send(XMLRPCProxy::rejectionFault($decision['method']), "text/xml");
+			}
+			$result = rXMLRPCRequest::send($decision['payload'], $decision['trusted']);
+			if($result === false)
+			{
+				// The call passed the filter but the SCGI connection failed --
+				// this one really is an outage.
+				header("HTTP/1.0 500 Server Error");
+				CachedEcho::send("Could not reach rTorrent over XMLRPC. Is rTorrent running?", "text/html");
+			}
 			if(!empty($result))
 			{
 				$pos = strpos($result, "\r\n\r\n");
