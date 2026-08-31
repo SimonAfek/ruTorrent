@@ -25,7 +25,9 @@ var theWebUI = {
 				{ text: theUILang.Priority, 		width: "80px", 	id: "priority",		type: TYPE_NUMBER },
 				{ text: theUILang.Created_on,		width: "110px", id: "created",		type: TYPE_NUMBER },
 				{ text: theUILang.Remaining, 		width: "90px", 	id: "remaining",	type: TYPE_NUMBER },
-				{ text: theUILang.Save_path,		width: "200px", id: "save_path",	type: TYPE_STRING }
+				// titled: a save path is routinely wider than the column, and it
+				// is the value a user most often needs to read in full.
+				{ text: theUILang.Save_path,		width: "200px", id: "save_path",	type: TYPE_STRING, titled: true }
 			],
 			container:	"List",
 			format:		theFormatter.torrents,
@@ -697,7 +699,74 @@ var theWebUI = {
 		});
 		if($type(this.settings["webui.search"]))
 			theSearchEngines.set(this.settings["webui.search"],true);
+		this.showSocketAllocBudget();
    	},
+
+	// rtorrent only accepts an open files/HTTP pair that fits the socket
+	// manager's budget, and refuses the whole write otherwise. Report the
+	// limit next to the fields rather than let it be discovered by failing.
+	socketAllocBudget: function()
+	{
+		// loadSettings() also runs before getplugins.php has filled in systemInfo.
+		if(!$type(this.systemInfo) || !$type(this.systemInfo.rTorrent))
+			return(0);
+		return(iv(this.systemInfo.rTorrent.socketAllocBudget));
+	},
+
+	socketAllocLimit: function(name)
+	{
+		if(!$type(this.systemInfo) || !$type(this.systemInfo.rTorrent))
+			return(0);
+		return(iv(this.systemInfo.rTorrent[name]));
+	},
+
+	showSocketAllocBudget: function()
+	{
+		var budget = this.socketAllocBudget();
+		if(!budget)
+			return;
+		$('#socket_alloc_budget').text(theUILang.Glob_alloc_budget+' '+budget+'.');
+		$('#socket_alloc_budget_row').show();
+	},
+
+	socketAllocationAccepted: function()
+	{
+		var filesField = $('#max_open_files');
+		var httpField = $('#max_open_http');
+
+		// The Connection page is removed for users without the permission, so
+		// the fields are absent rather than empty and there is nothing to check.
+		if(!filesField.length || !httpField.length)
+			return(true);
+
+		var files = iv(filesField.val());
+		var http = iv(httpField.val());
+		var filesMin = this.socketAllocLimit('socketFilesAllocMin');
+		var filesMax = this.socketAllocLimit('socketFilesAllocMax');
+		var httpMax = this.socketAllocLimit('socketHttpAllocMax');
+
+		if(filesMin && (files<filesMin))
+		{
+			noty(theUILang.Glob_alloc_files_min+' '+filesMin+' ('+files+').','error');
+			return(false);
+		}
+		if(filesMax && (files>filesMax))
+		{
+			noty(theUILang.Glob_alloc_files_max+' '+filesMax+' ('+files+').','error');
+			return(false);
+		}
+		if(httpMax && (http>httpMax))
+		{
+			noty(theUILang.Glob_alloc_http_max+' '+httpMax+' ('+http+').','error');
+			return(false);
+		}
+		if(!socketAllocationFits(this.socketAllocBudget(),files,http))
+		{
+			noty(theUILang.Glob_alloc_exceeded+' '+this.socketAllocBudget()+' ('+(files+http)+').','error');
+			return(false);
+		}
+		return(true);
+	},
 
 	setSettings: function() {
 		var req = '';
@@ -804,7 +873,12 @@ var theWebUI = {
 					}
 					else
 					{
-						var k_type = o.is("input:checkbox") || o.is("select") || o.hasClass("num") ? "n" : "s";
+						// A number input is a numeric setting whether or not it also
+						// carries the legacy "num" class, and the prefix decides both
+						// the cast in action.php and which settings take the socket
+						// allocation path.
+						var k_type = o.is("input:checkbox") || o.is("select") || o.hasClass("num") ||
+							o.is("input[type=number]") ? "n" : "s";
 						req+=("&s="+k_type+i+"&v="+nv);
 					}
 				}
@@ -818,7 +892,8 @@ var theWebUI = {
 		}
 		if(needResize)
 			this.resize();
-		if((req.length>0) && theWebUI.systemInfo.rTorrent.started)
+		if((req.length>0) && theWebUI.systemInfo.rTorrent.started &&
+			this.socketAllocationAccepted())
 			this.request("?action=setsettings" + req,null,true);
 		if(needSave)
 			this.save(reply);
@@ -906,6 +981,12 @@ var theWebUI = {
 
 	addPeers: function(data, hash)
 	{
+		// A getpeers answer can arrive after its torrent stopped being shown,
+		// or after it disappeared from the list entirely. Ignore a hash we no
+		// longer know: caching it would leak, because the cleanup loop below
+		// only walks the torrents that are still there.
+		if (!Object.prototype.hasOwnProperty.call(this.torrents, hash))
+			return;
 		const table = this.getTable("prs");
 		for (const peer of Object.values(data))
 		{
@@ -918,10 +999,12 @@ var theWebUI = {
 			};
 		}
 		this.peers[hash] = data;
+		// Only the shown torrent may touch the peer table. Clearing it here
+		// would wipe the rows of whatever torrent is actually open; the paths
+		// that own that decision -- getPeers() on a fresh open, and
+		// clearDetails() when the details block closes -- clear it themselves.
 		if (this.dID == hash)
 			table.updateRows(this.peers[hash]);
-		else
-			table.clearRows();
 	},
 
 	prsSelect: function(e, id)
