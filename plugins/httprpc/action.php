@@ -685,10 +685,23 @@ switch($mode)
 	{
 		if(isset($HTTP_RAW_POST_DATA))
 		{
+			// The policy is shared with rpc2.php: one statement of what a
+			// caller may name, for every door that reaches rtorrent through
+			// this filter. The plugin conf is evaluated after it, so a
+			// deployment that means this door to differ still says so there.
+			$policyFile = dirname(__FILE__).'/../../conf/xmlrpc_proxy.php';
+			if(is_file($policyFile) && is_readable($policyFile))
+				require_once($policyFile);
 			eval(FileUtil::getPluginConf('httprpc'));
 			$proxyMode = isset($XMLRPCProxy) ? $XMLRPCProxy : 'sanitize';
 			$proxyLog = isset($XMLRPCProxyLog) ? $XMLRPCProxyLog : true;
 			$proxySafeParams = isset($XMLRPCProxySafeParams) ? $XMLRPCProxySafeParams : array();
+			// With no policy at all every command parameter is stripped, which
+			// costs a client its labels and directories and looks to it like a
+			// client problem. Name the cause instead.
+			if($proxyLog && (count($proxySafeParams) == 0))
+				FileUtil::toLog("xmlrpc-proxy: no \$XMLRPCProxySafeParams is defined in "
+					."conf/xmlrpc_proxy.php or plugins/httprpc/conf.php");
 			$proxyLocalPaths = isset($XMLRPCProxyAllowLocalPaths) ? $XMLRPCProxyAllowLocalPaths : false;
 			// d.directory.set names the directory rtorrent writes a download
 			// into, and the caller supplies the torrent, so it names the file
@@ -711,6 +724,22 @@ switch($mode)
 			// connection to rtorrent, and process()'s null return cannot tell a
 			// call this filter refused from one rtorrent could not answer. That
 			// is what rpc2.php does with the same policy.
+			if($HTTP_RAW_POST_DATA === false)
+			{
+				if($proxyLog)
+					FileUtil::toLog("xmlrpc-proxy: could not read request body");
+				header("HTTP/1.0 400 Bad Request");
+				CachedEcho::send("Could not read XMLRPC request.", "text/html");
+				exit;
+			}
+			if($HTTP_RAW_POST_DATA === '')
+			{
+				if($proxyLog)
+					FileUtil::toLog("xmlrpc-proxy: empty request body");
+				header("HTTP/1.0 400 Bad Request");
+				CachedEcho::send("Empty XMLRPC request.", "text/html");
+				exit;
+			}
 			$decision = XMLRPCProxy::decide($HTTP_RAW_POST_DATA, $proxyMode, $proxySafeParams, $proxyLocalPaths, $proxyOptions);
 			if($proxyLog)
 				foreach($decision['log'] as $line)
@@ -723,14 +752,14 @@ switch($mode)
 				// which sends the client to restart a client that is up.
 				header("HTTP/1.0 403 Forbidden");
 				CachedEcho::send(XMLRPCProxy::rejectionFault($decision['method']), "text/xml");
+				exit;
 			}
 			$result = rXMLRPCRequest::send($decision['payload'], $decision['trusted']);
 			if($result === false)
 			{
-				// The call passed the filter but the SCGI connection failed --
-				// this one really is an outage.
 				header("HTTP/1.0 500 Server Error");
-				CachedEcho::send("Could not reach rTorrent over XMLRPC. Is rTorrent running?", "text/html");
+				CachedEcho::send("Could not complete the rTorrent XMLRPC request.", "text/html");
+				exit;
 			}
 			if(!empty($result))
 			{
