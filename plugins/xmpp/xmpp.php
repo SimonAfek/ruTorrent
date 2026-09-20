@@ -1,6 +1,7 @@
 <?php
 
 require_once( dirname(__FILE__)."/../../php/settings.php");
+require_once( dirname(__FILE__)."/../../php/utility/json.php");
 
 class rXmpp
 {
@@ -30,13 +31,20 @@ class rXmpp
 		return $cache->set( $this );
 	}
 
-	public function set()
+	// $rawPostData names the request body, which is otherwise read from
+	// php://input and so cannot be handed to this from a test.
+	public function set($rawPostData = null)
 	{
 		if( !isset( $HTTP_RAW_POST_DATA ) )
-			$HTTP_RAW_POST_DATA = file_get_contents( "php://input" );
+			$HTTP_RAW_POST_DATA = is_null($rawPostData) ? file_get_contents( "php://input" ) : $rawPostData;
 		if( isset( $HTTP_RAW_POST_DATA ) )
 		{
 			$vars = explode( '&', $HTTP_RAW_POST_DATA );
+			// The settings page is not shown the stored password, so it has
+			// none to send back unless somebody typed one. A request that
+			// carries no jabberPasswd leaves the stored one alone.
+			$storedPasswd = $this->jabberPasswd;
+			$passwdWasSent = false;
 			$this->jabberHost = "";
 			$this->jabberPort = 5222;;
 			$this->jabberLogin = "";
@@ -65,7 +73,8 @@ class rXmpp
 				}
 				else if( $parts[0] == "jabberPasswd" )
 				{
-					$this->jabberPasswd = $parts[1];
+					$passwdWasSent = true;
+					$this->jabberPasswd = isset($parts[1]) ? $parts[1] : "";
 				}
 				else if( $parts[0] == "useEncryption" )
 				{
@@ -87,6 +96,10 @@ class rXmpp
 					}
 				}
 			}
+			if (!$passwdWasSent)
+			{
+			    $this->jabberPasswd = $storedPasswd;
+			}
 			if ($this->advancedSettings)
 			{
 			    if ($jabberHost)
@@ -106,21 +119,25 @@ class rXmpp
 
 	public function get()
 	{
-		$ret  = "theWebUI.xmpp = { ";
-		$ret .= "JabberHost: '".$this->jabberHost."'";
-		$ret .= ", JabberPort: ".$this->jabberPort;
 		$jid = "";
 		if ($this->jabberLogin && $this->jabberServer)
 		{
 		    $jid = $this->jabberLogin."@".$this->jabberServer;
 		}
-		$ret .= ", JabberJID: '".$jid."'";
-		$ret .= ", JabberPasswd: '".$this->jabberPasswd."'";
-		$ret .= ", UseEncryption: ".$this->useEncryption;
-		$ret .= ", AdvancedSettings: ".$this->advancedSettings;
-		$ret .= ", JabberFor: '".$this->jabberFor."'";
-		$ret .= ", Message: '".addslashes($this->message ? $this->message : $this->message_templ)."'";
-		return $ret." };\n";
+		return "theWebUI.xmpp = ".JSON::jsValue(array(
+			"JabberHost" => strval($this->jabberHost),
+			"JabberPort" => intval($this->jabberPort),
+			"JabberJID" => $jid,
+			// Whether a password is stored, never the password. This is
+			// appended to the javascript of every page load by
+			// plugins/xmpp/init.php, and is the whole answer of
+			// plugins/xmpp/action.php.
+			"JabberPasswd_set" => (strval($this->jabberPasswd)==="") ? 0 : 1,
+			"UseEncryption" => intval($this->useEncryption),
+			"AdvancedSettings" => intval($this->advancedSettings),
+			"JabberFor" => strval($this->jabberFor),
+			"Message" => strval($this->message ? $this->message : $this->message_templ)
+		)).";\n";
 	}
 
 	public function setHandlers()
